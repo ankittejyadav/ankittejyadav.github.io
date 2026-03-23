@@ -1,0 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+
+:root {
+  --bg: #ffffff;
+  --text: #1a1a1a;
+  --text-secondary: #555;
+  --text-muted: #999;
+  --border: #eee;
+  --link: #2563eb;
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+:root.dark {
+  --bg: #111;
+  --text: #e5e5e5;
+  --text-secondary: #aaa;
+  --text-muted: #666;
+  --border: #222;
+  --link: #60a5fa;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  transition: background 0.3s, color 0.3s;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.prose {
+  --tw-prose-body: var(--text);
+  --tw-prose-headings: var(--text);
+  --tw-prose-links: var(--link);
+  --tw-prose-bold: var(--text);
+  --tw-prose-code: var(--text);
+  --tw-prose-pre-bg: var(--border);
+  --tw-prose-pre-code: var(--text);
+  --tw-prose-quotes: var(--text-secondary);
+  --tw-prose-quote-borders: var(--text-muted);
+  --tw-prose-hr: var(--border);
+  color: var(--text);
+}
+
+.prose pre {
+  background: var(--border) !important;
+  border-radius: 8px;
+}
+
+.prose code {
+  background: var(--border);
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+  font-size: 0.85em;
+}
