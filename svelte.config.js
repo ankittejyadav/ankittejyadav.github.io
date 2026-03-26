@@ -7,7 +7,16 @@ const config = {
 	preprocess: [
 		mdsvex({
 			extensions: ['.md']
-		})
+		}),
+		{
+			markup({ content, filename }) {
+				if (filename?.endsWith('.md')) {
+					return {
+						code: content.replace(/<script\s+context="module">/g, '<script module>')
+					};
+				}
+			}
+		}
 	],
 	kit: {
 		adapter: adapter({
