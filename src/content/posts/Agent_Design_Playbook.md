@@ -1,6 +1,6 @@
 ---
 title: "Technical Leader's GenAI & AI Agent Playbook"
-date: "2026-05-14"
+date: "2026-05-08"
 excerpt: "15 Checkpoints from POC to Production for GenAI and AI Agents."
 tags: ["GenAI", "AI Agents", "AWS Bedrock", "Production"]
 ---
