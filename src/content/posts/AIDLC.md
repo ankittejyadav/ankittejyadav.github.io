@@ -1,8 +1,8 @@
 ---
-title: "AIDLC"
+title: "AI-Driven Life Cycle Development (AI-DLC)"
 date: "2026-04-04"
-excerpt: "AIDLC"
-tags: ["AIDLC"]
+excerpt: "A guide to AI-driven life cycle development (AI-DLC) and how it optimizes the traditional SDLC."
+tags: ["AI-DLC", "SDLC", "Generative AI", "Software Engineering", "Agentic AI"]
 ---
 
 When coding with agents I've found myself losing track of changes to my application quite frequently.
@@ -10,6 +10,9 @@ I'd start with building a feature -> ask the agent to add another feature -> mod
 
 But I think I might've found a fix for this now with AI-driven life cycle development (AI-DLC). It follows the personas of traditional SDLC but it removes the bits no longer needed when doing AI driven development.
 The idea is to have a all the personas talk to each other and follow the steps of traditional SDLC through prompts. We would be planning and documenting the entire process to keep track of things.
+
+Inception -> Construction -> Operation
+AI Governance underlying all of it
 
 Here is an example when building a Greenfiield version (MVP):
 
