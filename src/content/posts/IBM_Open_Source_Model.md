@@ -1,6 +1,6 @@
 ---
 title: "IBM's Granite: Open Source LLM for Enterprise"
-date: "2026-05-14"
+date: "2026-04-09"
 excerpt: "Exploring IBM's Granite models and the shift towards open-source AI in the enterprise sector."
 tags: ["IBM", "Open Source", "LLM", "Enterprise", "Granite"]
 ---
