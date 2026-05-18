@@ -1,3 +1,4 @@
+/** @type {import('./$types').PageLoad} */
 export async function load({ params }) {
   const modules = import.meta.glob('/src/content/posts/*.md', { eager: true });
   const path = `/src/content/posts/${params.slug}.md`;

@@ -13,6 +13,7 @@
   <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
     <a href="/" style="font-weight: 600; color: var(--text); font-size: 0.95rem;">Ankit Yadav</a>
     <nav style="display: flex; align-items: center; gap: 1.25rem;">
+      <a href="/projects" style="color: var(--text-muted); font-size: 0.85rem;">projects</a>
       <a href="/blog" style="color: var(--text-muted); font-size: 0.85rem;">blog</a>
       <button onclick={toggle} style="background: none; border: 1px solid var(--border); border-radius: 6px; padding: 0.3rem 0.6rem; cursor: pointer; color: var(--text-muted); font-size: 0.75rem; transition: border-color 0.2s;">
         {dark ? '☀' : '☾'}

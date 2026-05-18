@@ -1,0 +1,8 @@
+{
+  "settings": {
+    "showForks": false,
+    "showArchived": false,
+    "excludeRepos": ["ankittejyadav.github.io"]
+  },
+  "projects": {}
+}
