@@ -2,7 +2,23 @@
   "settings": {
     "showForks": false,
     "showArchived": false,
-    "excludeRepos": ["ankittejyadav.github.io"]
+    "excludeRepos": [
+      "ankittejyadav.github.io"
+    ]
   },
-  "projects": {}
+  "projects": {
+    "selfhost": {
+      "featured": true,
+      "order": 1
+    },
+    "ankittejyadav.github.io": {
+      "featured": true,
+      "order": 2,
+      "tagline": "Auto-syncing portfolio site with GitHub-powered project showcase"
+    },
+    "roommatesTasker": {
+      "featured": true,
+      "order": 3
+    }
+  }
 }

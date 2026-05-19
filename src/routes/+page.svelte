@@ -6,47 +6,96 @@
   <title>Ankit Yadav</title>
 </svelte:head>
 
-<div>
-  <h1 style="font-size: 1.75rem; font-weight: 700; line-height: 1.25; letter-spacing: -0.02em; margin-bottom: 3rem;">Engineer</h1>
-
-  <!-- Projects Section -->
-  <p style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 1.5rem;">Projects</p>
-
-  <div style="display: flex; flex-direction: column; margin-bottom: 1rem;">
-    {#each data.featuredProjects as project}
-      <a href="/projects/{project.slug}" style="padding: 1rem 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: baseline; text-decoration: none;">
-        <div style="display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; flex-grow: 1;">
-          <span style="font-weight: 500; color: var(--text);">{project.name}</span>
-          {#if project.tagline || project.description}
-            <span style="color: var(--text-muted); font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-              {project.tagline || project.description}
-            </span>
-          {/if}
-        </div>
-        {#if project.language}
-          <span style="color: var(--text-muted); font-size: 0.8rem; flex-shrink: 0; margin-left: 1rem;">
-            {project.language}
-          </span>
-        {/if}
-      </a>
-    {/each}
-  </div>
-
-  <div style="margin-bottom: 3.5rem;">
-    <a href="/projects" style="color: var(--text-muted); font-size: 0.85rem; font-weight: 500;">View all →</a>
-  </div>
-
-  <!-- Writing Section -->
-  <p style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 1.5rem;">Writing</p>
-
-  <div style="display: flex; flex-direction: column;">
-    {#each data.posts as post}
-      <a href="/blog/{post.slug}" style="padding: 1rem 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: baseline; text-decoration: none;">
-        <span style="font-weight: 500; color: var(--text);">{post.title}</span>
-        <time style="color: var(--text-muted); font-size: 0.8rem;">
-          {new Date(post.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-        </time>
-      </a>
-    {/each}
+<div class="home-container">
+  <div class="hero-card">
+    <h1 class="name-title">Ankit Yadav</h1>
+    <div class="nav-links">
+      <a href="/projects" class="nav-link">projects</a>
+      <span class="divider">/</span>
+      <a href="/blog" class="nav-link">blog</a>
+    </div>
   </div>
 </div>
+
+<style>
+  .home-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 55vh;
+    padding: 2rem;
+  }
+  
+  .hero-card {
+    text-align: center;
+    animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  
+  .name-title {
+    font-size: 2.75rem;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    color: var(--text);
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, var(--text) 30%, var(--text-secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .nav-links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.25rem;
+  }
+  
+  .nav-link {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    padding: 0.2rem 0;
+  }
+  
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background-color: var(--link);
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .nav-link:hover {
+    color: var(--text);
+  }
+  
+  .nav-link:hover::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+  
+  .divider {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    opacity: 0.4;
+    user-select: none;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
