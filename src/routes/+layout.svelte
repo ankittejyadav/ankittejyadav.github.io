@@ -21,8 +21,9 @@
         >Ankit Yadav</a
       >
       <nav style="display: flex; align-items: center; gap: 1.25rem;">
-        <a href="/projects" style="color: var(--text-muted); font-size: 0.85rem;"
-          >projects</a
+        <a
+          href="/projects"
+          style="color: var(--text-muted); font-size: 0.85rem;">projects</a
         >
         <a href="/blog" style="color: var(--text-muted); font-size: 0.85rem;"
           >blog</a

@@ -9,7 +9,7 @@
 </svelte:head>
 
 <article>
-  <a href="/blog" style="color: var(--text-muted); font-size: 0.8rem;">← back</a>
+  <a href="/blog" style="color: var(--text-muted); font-size: 0.8rem;">&larr; back</a>
 
   <header style="margin-top: 2rem; margin-bottom: 2.5rem;">
     <time style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">
@@ -25,6 +25,6 @@
   </div>
 
   <div style="margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border);">
-    <a href="/blog" style="color: var(--text-muted); font-size: 0.8rem;">← all posts</a>
+    <a href="/blog" style="color: var(--text-muted); font-size: 0.8rem;">&larr; all posts</a>
   </div>
 </article>

@@ -28,7 +28,7 @@
 </svelte:head>
 
 <article>
-  <a href="/projects" style="color: var(--text-muted); font-size: 0.8rem;">← back</a>
+  <a href="/projects" style="color: var(--text-muted); font-size: 0.8rem;">&larr; back</a>
 
   <header style="margin-top: 2rem; margin-bottom: 2.5rem;">
     <h1 style="font-size: 1.5rem; font-weight: 700; line-height: 1.3; margin-top: 0.5rem; letter-spacing: -0.02em; color: var(--text);">
@@ -127,6 +127,6 @@
   {/if}
 
   <div style="margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border);">
-    <a href="/projects" style="color: var(--text-muted); font-size: 0.8rem;">← all projects</a>
+    <a href="/projects" style="color: var(--text-muted); font-size: 0.8rem;">&larr; all projects</a>
   </div>
 </article>
