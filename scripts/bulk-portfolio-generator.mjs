@@ -165,11 +165,24 @@ Remember: Focus on architecture, trade-offs, security, and senior-level technica
     const model = "gemini-2.5-flash";
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
-    const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody)
-    });
+    let retries = 5;
+    let response;
+    
+    while (retries >= 0) {
+        response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (response.status === 429) {
+            logWarn(`Gemini API Rate Limit hit (429). Waiting 35 seconds to cool down... (${retries} retries left)`);
+            await new Promise(resolve => setTimeout(resolve, 35000));
+            retries--;
+            continue;
+        }
+        break;
+    }
 
     if (!response.ok) {
         const errText = await response.text();
