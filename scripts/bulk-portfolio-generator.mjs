@@ -162,7 +162,7 @@ Remember: Focus on architecture, trade-offs, security, and senior-level technica
         }
     };
 
-    const model = "gemini-1.5-flash";
+    const model = "gemini-flash-latest";
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
     let retries = 5;
