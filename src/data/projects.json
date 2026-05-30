@@ -97,7 +97,7 @@
     "isFork": false,
     "featured": false,
     "order": null,
-    "updatedAt": "2026-05-28T02:49:16Z",
+    "updatedAt": "2026-05-29T02:52:40Z",
     "createdAt": "2023-12-30T18:50:59Z",
     "portfolioContent": "\n## 🌟 Architectural Vision & System Design\n\nThe core architectural philosophy of this ecosystem is **local-first, decentralized intelligence**. Rather than relying on fragmented, third-party SaaS platforms that compromise data privacy, this system unifies fitness, nutrition, location intelligence, and task management into a single, self-hosted modular monolith. \n\nBy decoupling the ingestion pipelines from the presentation layer, the architecture ensures high availability, low latency, and offline-first capabilities even when running on resource-constrained, self-hosted hardware (e.g., single-board computers).\n\n```\n┌─────────────────────────────────────────────────────────────────────────┐\n│                           Svelte Client (UI)                            │\n└────────────────────────────────────┬────────────────────────────────────┘\n                                     │ (REST / WebSockets)\n                                     ▼\n┌─────────────────────────────────────────────────────────────────────────┐\n│                     TypeScript / Python API Gateway                     │\n└──────┬─────────────────────────────┬─────────────────────────────┬──────┘\n       │                             │                             │\n       ▼                             ▼                             ▼\n┌──────────────┐              ┌──────────────┐              ┌──────────────┐",
     "stack": [
@@ -526,45 +526,6 @@
       "Designed a declarative state-to-style mapping system utilizing React's reconciliation engine and lifecycle hooks."
     ],
     "role": "Solo Frontend Architect & Developer",
-    "status": "completed"
-  },
-  {
-    "name": "reactToDoApp",
-    "slug": "reacttodoapp",
-    "tagline": "A high-performance, client-side task management engine featuring deterministic state synchronization and rigorous unit test coverage.",
-    "description": "A highly optimized, production-ready React task management application designed with a focus on clean architecture, unidirectional data flow, and rigorous test-driven development (TDD) practices.",
-    "language": "CSS",
-    "languages": {
-      "CSS": 2626,
-      "JavaScript": 2475,
-      "HTML": 361
-    },
-    "stars": 0,
-    "forks": 0,
-    "topics": [],
-    "url": "https://github.com/ankittejyadav/reactToDoApp",
-    "demoUrl": null,
-    "isPrivate": false,
-    "isFork": false,
-    "featured": false,
-    "order": null,
-    "updatedAt": "2026-05-26T11:50:46Z",
-    "createdAt": "2023-07-16T23:31:20Z",
-    "portfolioContent": "\n## 🌟 Architectural Vision & System Design\n\nThe application is architected as a highly responsive, client-side single-page application (SPA). The core design philosophy prioritizes **unidirectional data flow**, **predictable state transitions**, and **strict separation of concerns** between the presentation layer and the state management engine.\n\n```\n[ User Interaction ] ──(Event)──> [ State Mutators (Hooks) ]\n        ▲                                     │\n        │ (Reactive Render)                   ▼\n[ Virtual DOM Reconciliation ] <─── [ Immutable State Store ]\n                                              │\n                                              ▼\n                                 [ LocalStorage Sync Engine ]\n```\n\n### Core Data & System Flow\n*   **Ingestion / Input**: User actions (creation, deletion, and status toggling) are captured via controlled components. Inputs are sanitized and",
-    "stack": [
-      "React.js",
-      "JavaScript (ES6+)",
-      "CSS3 (Modular Layouts)",
-      "Jest",
-      "React Testing Library",
-      "Netlify (CI/CD)"
-    ],
-    "highlights": [
-      "Engineered a deterministic state synchronization pipeline utilizing React Hooks and LocalStorage for zero-latency data persistence.",
-      "Designed a robust, isolated unit testing suite with Jest and React Testing Library, achieving high assertion coverage for critical user interactions.",
-      "Optimized component rendering cycles by decoupling state mutations from UI paint events, ensuring 60 FPS performance."
-    ],
-    "role": "Solo Frontend Architect & Engineer",
     "status": "completed"
   },
   {
