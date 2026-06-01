@@ -82,6 +82,67 @@
     "status": null
   },
   {
+    "name": "AgentMux",
+    "slug": "agentmux",
+    "tagline": null,
+    "description": null,
+    "language": "Rust",
+    "languages": {
+      "Rust": 109621
+    },
+    "stars": 0,
+    "forks": 0,
+    "topics": [],
+    "url": "https://github.com/ankittejyadav/AgentMux",
+    "demoUrl": null,
+    "isPrivate": false,
+    "isFork": false,
+    "featured": false,
+    "order": null,
+    "updatedAt": "2026-06-01T06:32:46Z",
+    "createdAt": "2026-05-31T23:11:27Z",
+    "portfolioContent": "# AgentMux Portfolio\n\n## Project Summary\n\nAgentMux is a CLI-first terminal multiplexer for coordinating multiple AI coding agent harnesses from one project-local workflow. It currently targets Codex CLI, Claude Code, Gemini CLI, and Antigravity CLI through the stable agent keys `codex`, `claude`, `gemini`, and `agy`.\n\nThe core idea is harness-preserving orchestration. Instead of replacing each native CLI with a new UI, protocol, or agent runtime, AgentMux wraps the existing interactive terminal process and keeps it working normally. Native slash commands, approval prompts, model controls, permissions, local config, and terminal behavior continue to belong to the original harness.\n\nAgentMux adds a thin coordination layer around those native tools: project plans, task handoffs, foreground and background sessions, same-terminal status, focus and detach, waiting detection, transcripts, result files, and safe run cleanup.\n\n## Problem\n\nAI coding agents are becoming powerful, but each agent usually lives inside its own harness. A user might want to use one high-reasoning agent for architecture decisions, another for implementation, another for verification, and another for long-running edits. In practice, this creates friction:\n\n- Plans must be copied manually between tools.\n- Each harness has different commands, approval flows, logs, and state folders.\n- Running multiple agents means juggling terminals, editor panels, or GUI windows.\n- Background agents can silently stall on approval prompts.\n- Results are scattered across chat history, terminal scrollback, and tool-specific folders.\n\nAgentMux solves this by making the terminal session itself the orchestration surface.\n\n## Project Description\n\nAgentMux runs native agent CLIs inside managed PTY sessions. The active harness still behaves like the real harness. For example, typing `/skills`, `/goals`, or `/model` goes directly to the native CLI. AgentMux only intercepts its own wrapper commands through `Ctrl-G` command mode or a configurable line-start prefix such as `//`.\n\nA typical workflow looks like this:\n\n```sh\ncd my-project\nagentmux init\nagentmux plan auth\nagentmux codex\n```\n\nInside the Codex CLI session, the user can discuss architecture and write plan files under `.agentmux/plans/auth/`. Once the plan is ready, the user can delegate the work:\n\n```text\n//send auth gemini --bg\n```\n\nAgentMux starts Gemini CLI in a background PTY, injects a compact handoff prompt pointing at the plan folder, records its transcript, asks it to write a `result.md`, and keeps the current foreground harness alive. If the background session appears to be waiting for approval, AgentMux prints a same-terminal notification:\n\n```text\nagentmux: auth-gemini-1777598200 waiting(permission); Ctrl-G focus auth-gemini-1777598200\n```\n\nThe user can then focus the background session, respond to the native approval prompt exactly as they would in the original CLI, and detach back to the original foreground session.\n\n## Unique Selling Criteria\n\nAgentMux is designed around a specific gap: lightweight orchestration for existing CLI harnesses without forcing agents into a new platform.\n\nIts unique angle is the combination of:\n\n- Native harness preservation: existing slash commands, permissions, approvals, and terminal behavior remain intact.\n- CLI-first orchestration: the main interface is the terminal, not an editor plugin or dashboard.\n- Protocol-light integration: AgentMux does not require ACP, MCP, JSON-RPC, plugins, webhooks, or agent SDK changes.\n- Same-window delegation: users can hand off a plan, monitor background work, inspect results, and answer approvals without switching terminal sessions.\n- File-based project memory: plans, transcripts, metadata, and results live in `.agentmux/` inside the project.\n- Manual approval safety: AgentMux detects likely waiting states but does not auto-approve commands or bypass native permission flows.\n\nMost adjacent tools focus on custom agent runtimes, editor-integrated panels, chat UIs, or full terminal dashboards. AgentMux instead treats the native CLI harness as the unit of orchestration and adds only the minimum coordination layer needed to make multi-agent work practical.\n\n## Architecture Decisions\n\n### 1. CLI-First, Not GUI-First\n\nAgentMux starts from the terminal because the target tools are already terminal-native. This keeps the first version lightweight and avoids rebuilding editor features, chat panels, or a full dashboard.\n\nDecision:\nUse a Rust CLI binary that launches and manages agent CLIs from the current project folder.\n\nWhy:\n- Works on projects regardless of editor.\n- Matches the existing workflow of Codex CLI, Claude Code, Gemini CLI, and Antigravity CLI.\n- Keeps native harnesses usable exactly as-is.\n\nTradeoff:\n- No rich visual panes or graphical run browser in V1.\n\n### 2. PTY Wrapping Instead Of API Integration\n\nAgentMux uses PTYs to run interactive CLI harnesses. This lets each agent behave like it is running directly in a terminal.\n\nDecision:\nUse `portable-pty` for process spawning, terminal IO, resizing, foreground sessions, and background sessions.\n\nWhy:\n- Preserves native input/output behavior.\n- Supports interactive prompts and terminal UI behavior.\n- Avoids requiring each agent provider to expose a compatible API.\n\nTradeoff:\n- PTY output is text/ANSI oriented, so structured state must be inferred or recorded separately.\n\n### 3. Native Commands Pass Through By Default\n\nAgentMux does not own single-slash commands. Native commands such as `/skills`, `/goals`, and `/model` are forwarded unchanged to the active harness.\n\nDecision:\nUse `Ctrl-G` and a configurable line-start prefix such as `//` for AgentMux commands.\n\nWhy:\n- Avoids collisions with existing harness command surfaces.\n- Keeps the wrapper minimal.\n- Makes AgentMux feel like a control layer rather than a replacement shell.\n\nTradeoff:\n- Inline prefix commands only trigger at the absolute start of a terminal line.\n\n### 4. Project-Local State\n\nAgentMux stores its own state under `.agentmux/`.\n\nDecision:\nUse this folder structure:\n\n```text\n.agentmux/\n  config.toml\n  plans/\n    <plan>/\n      plan.md\n      tasks.md\n      acceptance.md\n      constraints.md\n  runs/\n    <run-id>/\n      meta.txt\n      transcript.ansi\n      result.md\n```\n\nWhy:\n- Keeps orchestration artifacts portable with the repo.\n- Avoids mutating native harness folders such as `.codex`, `.gemini-cli`, or `.antigravity-ide`.\n- Gives agents a stable file target for plans and final results.\n\nTradeoff:\n- AgentMux does not attempt to make native harness state folders interoperable.\n\n### 5. Stable Agent Keys With Configurable Launch Commands\n\nAgentMux uses stable logical names for agents while allowing each command path and default argument list to be configured.\n\nDecision:\nUse `.agentmux/config.toml`:\n\n```toml\ncommand_prefix = \"//\"\n\n[agents.codex]\ncommand = \"codex\"\nargs = []\n\n[agents.claude]\ncommand = \"claude\"\nargs = []\n\n[agents.gemini]\ncommand = \"gemini\"\nargs = []\n\n[agents.agy]\ncommand = \"agy\"\nargs = []\n```\n\nWhy:\n- Metadata and waiting detection can use stable keys.\n- Users can customize binary paths and default args per machine.\n- Direct launches, foreground switches, and background sends share the same launch config.\n\nTradeoff:\n- V1 intentionally limits agent keys to the four supported harnesses.\n\n### 6. Background Sessions With Focus And Detach\n\nAgentMux supports background agent work without hiding interactive prompts forever.\n\nDecision:\nBackground sessions keep their PTY writer and control handles. Output is logged to transcripts by default. `focus <session-id>` routes keyboard input and output to that background session. `detach` restores input/output to the original foreground harness.\n\nWhy:\n- Users can keep working while another agent runs.\n- Native approvals remain manual and visible.\n- No separate terminal is required for each agent.\n\nTradeoff:\n- V1 does not include full split-pane rendering or a persistent status bar.\n\n### 7. Waiting Detection Without Auto-Approval\n\nAgentMux scans background PTY output for likely approval, permission, confirmation, or input prompts.\n\nDecision:\nUse lightweight text pattern matching with generic fallback patterns and agent-specific patterns for `codex`, `claude`, `gemini`, and `agy`.\n\nWhy:\n- Detects common stalled states quickly.\n- Avoids bypassing native safety systems.\n- Keeps the implementation simple and testable.\n\nTradeoff:\n- Text matching can produce false positives or miss prompts if CLIs change wording.\n\n### 8. Transcripts And Result Files\n\nEach run records a raw transcript and a human-readable result file.\n\nDecision:\nUse `transcript.ansi` as the raw terminal record and `result.md` as the expected completion report.\n\nWhy:\n- The transcript preserves what happened.\n- The result file gives the user a stable summary to inspect from AgentMux.\n- Handoff prompts can tell agents exactly where to write their final report.\n\nTradeoff:\n- Agents may ignore or partially follow the requested `result.md` format.\n\n## Current Feature Set\n\n- Initialize project state with `agentmux init`.\n- Create plan folders with `agentmux plan <name>`.\n- Launch native harnesses with `agentmux codex`, `agentmux claude`, `agentmux gemini`, and `agentmux agy`.\n- Preserve native slash commands and approval prompts.\n- Run wrapper commands through `Ctrl-G`.\n- Run inline wrapper commands with `//` at line start.\n- Dispatch plans to foreground or background agents.\n- Focus and detach background sessions.\n- Stop one session or all background sessions.\n- Track waiting states and print same-terminal notifications.\n- List runs and inspect `result.md`.\n- Tail raw run transcripts.\n- Clean up old run directories safely.\n\n## Command Examples\n\n```sh\nagentmux init\nagentmux plan auth\nagentmux codex\n```\n\n```text\n//status\n//send auth gemini --bg\n//runs\n//tail auth-gemini-1777598200 80\n//focus auth-gemini-1777598200\n//detach\n//stop auth-gemini-1777598200\n//stop-all\n```\n\n```sh\nagentmux cleanup-runs --dry-run\nagentmux cleanup-runs --older-than 7\n```\n\n## Tech Stack\n\n- Rust: core CLI application and process orchestration.\n- portable-pty: cross-platform PTY management for interactive native CLI sessions.\n- crossterm: terminal raw mode and terminal sizing support.\n- serde: typed config deserialization.\n- toml: `.agentmux/config.toml` parsing.\n- Standard library concurrency primitives: session tracking, shared input handles, process lifecycle management.\n- Filesystem-based state: plans, metadata, transcripts, and results.\n- Native CLI tools: Codex CLI, Claude Code, Gemini CLI, and Antigravity CLI.\n\n## Pros\n\n- Preserves native harness functionality instead of replacing it.\n- Lets users orchestrate multiple agents from one terminal window.\n- Keeps approval flows manual and visible.\n- Does not require agent vendors to support a shared protocol.\n- Uses simple, inspectable project-local files.\n- Records transcripts and final results for later review.\n- Lightweight enough to work alongside existing editor or GUI workflows.\n\n## Cons And Limitations\n\n- V1 supports only four configured agent keys.\n- Waiting detection is heuristic and based on terminal text.\n- No full TUI, split-pane view, fuzzy finder, or graphical dashboard yet.\n- Background sessions can still stall if an agent uses an unexpected prompt format.\n- `result.md` quality depends on whether the delegated agent follows instructions.\n- Shell aliases are not supported directly; users should configure executable paths in `.agentmux/config.toml`.\n- Windows compile verification has not been completed locally if the Windows Rust target is not installed.\n\n## Future Improvements\n\n- Richer visual status line or optional terminal dashboard.\n- More robust prompt adapters per harness.\n- Live transcript follow mode.\n- Result validation and summary extraction.\n- User-defined agent keys beyond the initial four.\n- Optional integrations with editor extensions or external orchestration protocols.\n- Cross-platform release builds and installer packaging.\n\n## Open Source License\n\nAgentMux is released under the MIT License. See `LICENSE` in the repository root.\n",
+    "stack": [],
+    "highlights": [],
+    "role": null,
+    "status": null
+  },
+  {
+    "name": "ankittejyadav",
+    "slug": "ankittejyadav",
+    "tagline": "A self-hosted, AI-integrated personal intelligence platform and automated portfolio synchronization engine.",
+    "description": "A highly integrated, self-hosted ecosystem designed to centralize personal telemetry, execute local AI-driven workflows, and automate professional portfolio synchronization with zero-overhead CI/CD pipelines.",
+    "language": null,
+    "languages": {},
+    "stars": 0,
+    "forks": 0,
+    "topics": [],
+    "url": "https://github.com/ankittejyadav/ankittejyadav",
+    "demoUrl": null,
+    "isPrivate": false,
+    "isFork": false,
+    "featured": false,
+    "order": null,
+    "updatedAt": "2026-06-01T03:40:55Z",
+    "createdAt": "2023-12-30T18:50:59Z",
+    "portfolioContent": "\n## 🌟 Architectural Vision & System Design\n\nThe core architectural philosophy of this ecosystem is **local-first, decentralized intelligence**. Rather than relying on fragmented, third-party SaaS platforms that compromise data privacy, this system unifies fitness, nutrition, location intelligence, and task management into a single, self-hosted modular monolith. \n\nBy decoupling the ingestion pipelines from the presentation layer, the architecture ensures high availability, low latency, and offline-first capabilities even when running on resource-constrained, self-hosted hardware (e.g., single-board computers).\n\n```\n┌─────────────────────────────────────────────────────────────────────────┐\n│                           Svelte Client (UI)                            │\n└────────────────────────────────────┬────────────────────────────────────┘\n                                     │ (REST / WebSockets)\n                                     ▼\n┌─────────────────────────────────────────────────────────────────────────┐\n│                     TypeScript / Python API Gateway                     │\n└──────┬─────────────────────────────┬─────────────────────────────┬──────┘\n       │                             │                             │\n       ▼                             ▼                             ▼\n┌──────────────┐              ┌──────────────┐              ┌──────────────┐",
+    "stack": [
+      "Svelte",
+      "TypeScript",
+      "Python",
+      "PLpgSQL",
+      "Docker",
+      "GitHub Actions"
+    ],
+    "highlights": [
+      "Architected a modular, self-hosted personal intelligence dashboard (selfhost) unifying multi-domain telemetry with local AI agent execution.",
+      "Designed and implemented an automated, event-driven portfolio synchronization pipeline using GitHub Actions to dynamically compile and deploy system metrics.",
+      "Engineered a highly concurrent task-scheduling engine (roommatesTasker) utilizing TypeScript and robust state-synchronization patterns."
+    ],
+    "role": "Principal Software Engineer / Architect",
+    "status": "active"
+  },
+  {
     "name": "files",
     "slug": "files",
     "tagline": "Secure, version-controlled personal document vault and backup infrastructure with Git-based data recovery",
@@ -116,67 +177,6 @@
       "Designed recovery systems utilizing multi-channel offline storage paths and secure credential isolation"
     ],
     "role": "Solo DevOps & Security Engineer",
-    "status": "active"
-  },
-  {
-    "name": "AgentMux",
-    "slug": "agentmux",
-    "tagline": null,
-    "description": null,
-    "language": "Rust",
-    "languages": {
-      "Rust": 109621
-    },
-    "stars": 0,
-    "forks": 0,
-    "topics": [],
-    "url": "https://github.com/ankittejyadav/AgentMux",
-    "demoUrl": null,
-    "isPrivate": false,
-    "isFork": false,
-    "featured": false,
-    "order": null,
-    "updatedAt": "2026-05-31T23:46:57Z",
-    "createdAt": "2026-05-31T23:11:27Z",
-    "portfolioContent": "# agentmux\n\n`agentmux` is a CLI-first terminal multiplexer for agent CLIs.\n\nIt keeps Codex CLI, Claude Code, Gemini CLI, and Antigravity CLI working as their native tools while adding a thin shared layer for plans, handoffs, sessions, status, same-window approval visibility, and run log management.\n\n## Installation\n\nInstall `agentmux` from the local repository directory:\n\n```sh\ncargo install --path .\n```\n\n## Initialization\n\nInitialize a new `agentmux` project state and create a new plan:\n\n```sh\nagentmux init\nagentmux plan auth\n```\n\n## Configuration\n\nConfigure native agent executable command paths and default arguments in `.agentmux/config.toml`:\n\n```toml\ncommand_prefix = \"//\"\n\n[agents.codex]\ncommand = \"/opt/homebrew/bin/codex\"\nargs = [\"--model\", \"gpt-5\"]\n```\n\n## Launching Agents\n\nLaunch any of the supported native CLIs directly:\n\n```sh\nagentmux codex\nagentmux claude\nagentmux gemini\nagentmux agy\n```\n\n## Usage and Wrapper Commands\n\nNative commands (e.g. `/skills`, `/goals`, `/model`) pass directly to the active native CLI unchanged.\n\nTo run `agentmux` wrapper commands, either prefix the command at the beginning of a line with the configured `command_prefix` (default `//`), or press `Ctrl-G` to open the command prompt.\n\nAvailable wrapper commands:\n* `status` or `//status`: show active foreground and background sessions.\n* `send <plan> <agent> [--bg]` or `//send <plan> <agent> [--bg]`: dispatch plans.\n* `focus <session-id>` or `//focus <session-id>`: focus a background session.\n* `detach` or `//detach`: return to the active foreground harness.\n* `stop <session-id>` or `//stop <session-id>`: terminate a background session.\n* `stop-all` or `//stop-all`: terminate all background sessions.\n* `runs` or `//runs`: list recent run folders.\n* `result <run-id>` or `//result <run-id>`: view result markdown.\n* `tail <run-id> [lines]` or `//tail <run-id> [lines]`: tail run transcripts (maximum 500 lines).\n\n## Run Directory Cleanup\n\nClean up aged run log directories from `.agentmux/runs/`:\n\n```sh\nagentmux cleanup-runs --dry-run\nagentmux cleanup-runs --older-than 7\n```\n\n## Documentation\n\n* [Manual V1 Smoke Checklist](docs/v1-smoke-test.md)\n* Detailed decisions and roadmap are archived in `docs/`\n# AgentMux\n",
-    "stack": [],
-    "highlights": [],
-    "role": null,
-    "status": null
-  },
-  {
-    "name": "ankittejyadav",
-    "slug": "ankittejyadav",
-    "tagline": "A self-hosted, AI-integrated personal intelligence platform and automated portfolio synchronization engine.",
-    "description": "A highly integrated, self-hosted ecosystem designed to centralize personal telemetry, execute local AI-driven workflows, and automate professional portfolio synchronization with zero-overhead CI/CD pipelines.",
-    "language": null,
-    "languages": {},
-    "stars": 0,
-    "forks": 0,
-    "topics": [],
-    "url": "https://github.com/ankittejyadav/ankittejyadav",
-    "demoUrl": null,
-    "isPrivate": false,
-    "isFork": false,
-    "featured": false,
-    "order": null,
-    "updatedAt": "2026-05-29T02:52:40Z",
-    "createdAt": "2023-12-30T18:50:59Z",
-    "portfolioContent": "\n## 🌟 Architectural Vision & System Design\n\nThe core architectural philosophy of this ecosystem is **local-first, decentralized intelligence**. Rather than relying on fragmented, third-party SaaS platforms that compromise data privacy, this system unifies fitness, nutrition, location intelligence, and task management into a single, self-hosted modular monolith. \n\nBy decoupling the ingestion pipelines from the presentation layer, the architecture ensures high availability, low latency, and offline-first capabilities even when running on resource-constrained, self-hosted hardware (e.g., single-board computers).\n\n```\n┌─────────────────────────────────────────────────────────────────────────┐\n│                           Svelte Client (UI)                            │\n└────────────────────────────────────┬────────────────────────────────────┘\n                                     │ (REST / WebSockets)\n                                     ▼\n┌─────────────────────────────────────────────────────────────────────────┐\n│                     TypeScript / Python API Gateway                     │\n└──────┬─────────────────────────────┬─────────────────────────────┬──────┘\n       │                             │                             │\n       ▼                             ▼                             ▼\n┌──────────────┐              ┌──────────────┐              ┌──────────────┐",
-    "stack": [
-      "Svelte",
-      "TypeScript",
-      "Python",
-      "PLpgSQL",
-      "Docker",
-      "GitHub Actions"
-    ],
-    "highlights": [
-      "Architected a modular, self-hosted personal intelligence dashboard (selfhost) unifying multi-domain telemetry with local AI agent execution.",
-      "Designed and implemented an automated, event-driven portfolio synchronization pipeline using GitHub Actions to dynamically compile and deploy system metrics.",
-      "Engineered a highly concurrent task-scheduling engine (roommatesTasker) utilizing TypeScript and robust state-synchronization patterns."
-    ],
-    "role": "Principal Software Engineer / Architect",
     "status": "active"
   },
   {
