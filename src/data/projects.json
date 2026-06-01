@@ -82,6 +82,69 @@
     "status": null
   },
   {
+    "name": "files",
+    "slug": "files",
+    "tagline": "Secure, version-controlled personal document vault and backup infrastructure with Git-based data recovery",
+    "description": "A secure, private backup infrastructure for tax documents, professional certifications, and sensitive system recovery codes.",
+    "language": "Jupyter Notebook",
+    "languages": {
+      "Jupyter Notebook": 1963122,
+      "HTML": 835,
+      "Python": 92
+    },
+    "stars": 0,
+    "forks": 0,
+    "topics": [],
+    "url": "https://github.com/ankittejyadav/files",
+    "demoUrl": null,
+    "isPrivate": true,
+    "isFork": false,
+    "featured": false,
+    "order": null,
+    "updatedAt": "2026-06-01T00:04:03Z",
+    "createdAt": "2025-11-06T22:04:29Z",
+    "portfolioContent": "\n## 🌟 Architectural Vision & System Design\n\nThe **Document Vault** is a secure, version-controlled infrastructure designed for the high-durability backup and retrieval of critical personal records (e.g., tax documentation, professional certifications, system recovery keys). \n\nUnlike standard cloud storage options (such as Google Drive or Dropbox) which operate under opaque syncing models, this architecture prioritizes **immutability, cryptographically signed audit logs, and hardware-bound access control** through private Git repositories.\n\n### Core Data & System Flow\n*   **Ingestion & Classification**: Documents (such as W2s, certificates, and recovery payloads) are ingested into localized, structured staging directories.\n*   **Integrity Verification**: Files are indexed and versioned. Changes are tracked through Git's directed acyclic graph (DAG) structure, preventing silent data corruption or ransomware overrides.\n*   **Secure Remote Synchronization**: Data is pushed via SSH transport layers utilizing strong cryptographic algorithms (such as Ed25519) to private, cloud-isolated backup nodes.\n\n---\n\n## 💻 Tech Stack & Engineering Decisions\n\n*   **Version Control & Immutability (Git)**: Git was chosen as the database layer to ensure every single change, addition, or deletion has a cryptographically signed signature, enabling point-in-time recovery.\n*   **Remote Vaulting (GitHub Private Repositories)**: Used as a high-availability backup node, inheriting GitHub’s robust datacenter durability, enterprise-grade access control, and IP-whitelisting capabilities.\n*   **Access Protocols (SSH / Ed25519)**: Direct password authentication is fully disabled. All synchronization routes are protected by Ed25519 SSH keys bound to localized physical keyrings.\n\n---\n\n## ⚙️ Engineering Excellence & Best Practices\n\n*   **Security & Privacy First**: Zero-exposure policy. The repository employs a strict `.gitignore` structure to prevent accidental exposure of active environment credentials. Multi-factor authentication (MFA) protects all backup endpoints.\n*   **Data Durability**: Leveraging Git's absolute path integrity, ensuring that corrupt files can be immediately identified through SHA-256 integrity checksums.\n*   **Disaster Recovery (DR)**: Designed a recovery pipeline integrating hardware-isolated backup codes, permitting complete system restoration even during multi-factor lockout scenarios.\n\n---\n\n## 📈 Technical Challenges & Resolution\n\n### Challenge: Guaranteeing Zero-Exposure of Vault Contents in Shared or Automation Pipelines\n*   **The Problem**: When running sync tasks or indexing automated scripts (like portfolio site builders), sensitive files (e.g., W2 tax details or recovery keys) must remain absolutely private and isolated from public discovery or local memory leaks.\n*   **The Solution**: Implemented a defense-in-depth isolation boundary. Designed custom access scoping in the central portfolio configurations to explicitly black-list sensitive metadata and enforce private repository isolation rules server-side.\n*   **The Outcome**: Achieved a 100% secure backup state where public sites can report portfolio presence without ever exposing private document metadata, file paths, or binary payloads.\n\n---\n\n## 🧠 Key Engineering Takeaways\n\n*   **Treat Personal Infrastructure with Production Standards**: Applying professional DevOps practices (signed commits, private repositories, and strict transport-layer security) to personal files eliminates the vulnerability of single-point-of-failure consumer cloud services.\n*   **Immutability is Key for Backups**: Git’s core hashing model provides a level of recovery security and detection of silent bit-rot that standard file systems cannot match.\n",
+    "stack": [
+      "Git",
+      "GitHub (Private Infrastructure)",
+      "Cryptographic Key Management (GPG / SSH)",
+      "PDF Security Standards"
+    ],
+    "highlights": [
+      "Architected a secure, decentralized backup vault utilizing Git for immutable, auditable version history of critical records",
+      "Enforced strict security protocols including hardware-bound SSH keys and multi-factor authentication for repository access",
+      "Designed recovery systems utilizing multi-channel offline storage paths and secure credential isolation"
+    ],
+    "role": "Solo DevOps & Security Engineer",
+    "status": "active"
+  },
+  {
+    "name": "AgentMux",
+    "slug": "agentmux",
+    "tagline": null,
+    "description": null,
+    "language": "Rust",
+    "languages": {
+      "Rust": 109621
+    },
+    "stars": 0,
+    "forks": 0,
+    "topics": [],
+    "url": "https://github.com/ankittejyadav/AgentMux",
+    "demoUrl": null,
+    "isPrivate": false,
+    "isFork": false,
+    "featured": false,
+    "order": null,
+    "updatedAt": "2026-05-31T23:46:57Z",
+    "createdAt": "2026-05-31T23:11:27Z",
+    "portfolioContent": "# agentmux\n\n`agentmux` is a CLI-first terminal multiplexer for agent CLIs.\n\nIt keeps Codex CLI, Claude Code, Gemini CLI, and Antigravity CLI working as their native tools while adding a thin shared layer for plans, handoffs, sessions, status, same-window approval visibility, and run log management.\n\n## Installation\n\nInstall `agentmux` from the local repository directory:\n\n```sh\ncargo install --path .\n```\n\n## Initialization\n\nInitialize a new `agentmux` project state and create a new plan:\n\n```sh\nagentmux init\nagentmux plan auth\n```\n\n## Configuration\n\nConfigure native agent executable command paths and default arguments in `.agentmux/config.toml`:\n\n```toml\ncommand_prefix = \"//\"\n\n[agents.codex]\ncommand = \"/opt/homebrew/bin/codex\"\nargs = [\"--model\", \"gpt-5\"]\n```\n\n## Launching Agents\n\nLaunch any of the supported native CLIs directly:\n\n```sh\nagentmux codex\nagentmux claude\nagentmux gemini\nagentmux agy\n```\n\n## Usage and Wrapper Commands\n\nNative commands (e.g. `/skills`, `/goals`, `/model`) pass directly to the active native CLI unchanged.\n\nTo run `agentmux` wrapper commands, either prefix the command at the beginning of a line with the configured `command_prefix` (default `//`), or press `Ctrl-G` to open the command prompt.\n\nAvailable wrapper commands:\n* `status` or `//status`: show active foreground and background sessions.\n* `send <plan> <agent> [--bg]` or `//send <plan> <agent> [--bg]`: dispatch plans.\n* `focus <session-id>` or `//focus <session-id>`: focus a background session.\n* `detach` or `//detach`: return to the active foreground harness.\n* `stop <session-id>` or `//stop <session-id>`: terminate a background session.\n* `stop-all` or `//stop-all`: terminate all background sessions.\n* `runs` or `//runs`: list recent run folders.\n* `result <run-id>` or `//result <run-id>`: view result markdown.\n* `tail <run-id> [lines]` or `//tail <run-id> [lines]`: tail run transcripts (maximum 500 lines).\n\n## Run Directory Cleanup\n\nClean up aged run log directories from `.agentmux/runs/`:\n\n```sh\nagentmux cleanup-runs --dry-run\nagentmux cleanup-runs --older-than 7\n```\n\n## Documentation\n\n* [Manual V1 Smoke Checklist](docs/v1-smoke-test.md)\n* Detailed decisions and roadmap are archived in `docs/`\n# AgentMux\n",
+    "stack": [],
+    "highlights": [],
+    "role": null,
+    "status": null
+  },
+  {
     "name": "ankittejyadav",
     "slug": "ankittejyadav",
     "tagline": "A self-hosted, AI-integrated personal intelligence platform and automated portfolio synchronization engine.",
@@ -1485,43 +1548,6 @@
     ],
     "role": "Lead Full-Stack Engineer / Architect",
     "status": "completed"
-  },
-  {
-    "name": "files",
-    "slug": "files",
-    "tagline": "Secure, version-controlled personal document vault and backup infrastructure with Git-based data recovery",
-    "description": "A secure, private backup infrastructure for tax documents, professional certifications, and sensitive system recovery codes.",
-    "language": "Jupyter Notebook",
-    "languages": {
-      "Jupyter Notebook": 1697421,
-      "HTML": 835,
-      "Python": 92
-    },
-    "stars": 0,
-    "forks": 0,
-    "topics": [],
-    "url": "https://github.com/ankittejyadav/files",
-    "demoUrl": null,
-    "isPrivate": true,
-    "isFork": false,
-    "featured": false,
-    "order": null,
-    "updatedAt": "2026-05-26T01:41:36Z",
-    "createdAt": "2025-11-06T22:04:29Z",
-    "portfolioContent": "\n## 🌟 Architectural Vision & System Design\n\nThe **Document Vault** is a secure, version-controlled infrastructure designed for the high-durability backup and retrieval of critical personal records (e.g., tax documentation, professional certifications, system recovery keys). \n\nUnlike standard cloud storage options (such as Google Drive or Dropbox) which operate under opaque syncing models, this architecture prioritizes **immutability, cryptographically signed audit logs, and hardware-bound access control** through private Git repositories.\n\n### Core Data & System Flow\n*   **Ingestion & Classification**: Documents (such as W2s, certificates, and recovery payloads) are ingested into localized, structured staging directories.\n*   **Integrity Verification**: Files are indexed and versioned. Changes are tracked through Git's directed acyclic graph (DAG) structure, preventing silent data corruption or ransomware overrides.\n*   **Secure Remote Synchronization**: Data is pushed via SSH transport layers utilizing strong cryptographic algorithms (such as Ed25519) to private, cloud-isolated backup nodes.\n\n---\n\n## 💻 Tech Stack & Engineering Decisions\n\n*   **Version Control & Immutability (Git)**: Git was chosen as the database layer to ensure every single change, addition, or deletion has a cryptographically signed signature, enabling point-in-time recovery.\n*   **Remote Vaulting (GitHub Private Repositories)**: Used as a high-availability backup node, inheriting GitHub’s robust datacenter durability, enterprise-grade access control, and IP-whitelisting capabilities.\n*   **Access Protocols (SSH / Ed25519)**: Direct password authentication is fully disabled. All synchronization routes are protected by Ed25519 SSH keys bound to localized physical keyrings.\n\n---\n\n## ⚙️ Engineering Excellence & Best Practices\n\n*   **Security & Privacy First**: Zero-exposure policy. The repository employs a strict `.gitignore` structure to prevent accidental exposure of active environment credentials. Multi-factor authentication (MFA) protects all backup endpoints.\n*   **Data Durability**: Leveraging Git's absolute path integrity, ensuring that corrupt files can be immediately identified through SHA-256 integrity checksums.\n*   **Disaster Recovery (DR)**: Designed a recovery pipeline integrating hardware-isolated backup codes, permitting complete system restoration even during multi-factor lockout scenarios.\n\n---\n\n## 📈 Technical Challenges & Resolution\n\n### Challenge: Guaranteeing Zero-Exposure of Vault Contents in Shared or Automation Pipelines\n*   **The Problem**: When running sync tasks or indexing automated scripts (like portfolio site builders), sensitive files (e.g., W2 tax details or recovery keys) must remain absolutely private and isolated from public discovery or local memory leaks.\n*   **The Solution**: Implemented a defense-in-depth isolation boundary. Designed custom access scoping in the central portfolio configurations to explicitly black-list sensitive metadata and enforce private repository isolation rules server-side.\n*   **The Outcome**: Achieved a 100% secure backup state where public sites can report portfolio presence without ever exposing private document metadata, file paths, or binary payloads.\n\n---\n\n## 🧠 Key Engineering Takeaways\n\n*   **Treat Personal Infrastructure with Production Standards**: Applying professional DevOps practices (signed commits, private repositories, and strict transport-layer security) to personal files eliminates the vulnerability of single-point-of-failure consumer cloud services.\n*   **Immutability is Key for Backups**: Git’s core hashing model provides a level of recovery security and detection of silent bit-rot that standard file systems cannot match.\n",
-    "stack": [
-      "Git",
-      "GitHub (Private Infrastructure)",
-      "Cryptographic Key Management (GPG / SSH)",
-      "PDF Security Standards"
-    ],
-    "highlights": [
-      "Architected a secure, decentralized backup vault utilizing Git for immutable, auditable version history of critical records",
-      "Enforced strict security protocols including hardware-bound SSH keys and multi-factor authentication for repository access",
-      "Designed recovery systems utilizing multi-channel offline storage paths and secure credential isolation"
-    ],
-    "role": "Solo DevOps & Security Engineer",
-    "status": "active"
   },
   {
     "name": "MovieLand",
