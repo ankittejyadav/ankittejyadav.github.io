@@ -5,11 +5,13 @@ describe('mergeProjects & parseFrontmatter', () => {
 	const mockRepos = [
 		{
 			name: 'repo-b',
-			html_url: 'https://github.com/user/repo-b'
+			html_url: 'https://github.com/user/repo-b',
+			pushed_at: '2026-05-18T10:00:00Z'
 		},
 		{
 			name: 'repo-a',
-			html_url: 'https://github.com/user/repo-a'
+			html_url: 'https://github.com/user/repo-a',
+			pushed_at: '2026-05-18T12:00:00Z'
 		}
 	];
 
@@ -22,10 +24,10 @@ describe('mergeProjects & parseFrontmatter', () => {
 		expect(result[0].name).toBe('repo-b');
 		expect(result[0].portfolioContent).toBe('# Repo B Content');
 		expect(result[0].url).toBe('https://github.com/user/repo-b');
-		expect(result[0].slug).toBe('repo-b');
+		expect(result[0].slug).toBeUndefined(); // slug should be removed completely
 	});
 
-	it('sorts projects alphabetically by name', () => {
+	it('sorts projects by pushed_at descending', () => {
 		const portfolioData = new Map([
 			['repo-b', { content: '# Repo B', isPortfolio: true }],
 			['repo-a', { content: '# Repo A', isPortfolio: true }]
@@ -33,8 +35,8 @@ describe('mergeProjects & parseFrontmatter', () => {
 
 		const result = mergeProjects(mockRepos, portfolioData);
 		expect(result.length).toBe(2);
-		expect(result[0].name).toBe('repo-a');
-		expect(result[1].name).toBe('repo-b');
+		expect(result[0].name).toBe('repo-a'); // pushed_at 12:00:00Z (newer)
+		expect(result[1].name).toBe('repo-b'); // pushed_at 10:00:00Z (older)
 	});
 
 	describe('parseFrontmatter', () => {

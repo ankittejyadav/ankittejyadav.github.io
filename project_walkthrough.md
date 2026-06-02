@@ -28,7 +28,7 @@ graph TD
 ├── scripts/                  # Synchronization and README generation scripts
 │   ├── lib/                  # Helper utilities for GitHub fetch and config merge
 │   │   ├── github-client.mjs # Wrapper for GitHub API (paginated repos and files)
-│   │   └── merge-projects.mjs# Merges API data and strips frontmatter
+│   │   └── merge-projects.mjs# Merges API data
 │   ├── sync-projects.mjs     # The main sync entry point (requires GH_PAT env var)
 │   └── generate-profile-readme.mjs # Generates a customized GitHub profile README
 ├── src/
@@ -60,8 +60,7 @@ The project pulls metadata from GitHub via the `sync-projects.mjs` script:
 4. **Data Simplification:**
    - Strips frontmatter headers so that only the raw markdown body is preserved.
    - Restricts the cached project data inside `src/data/projects.json` strictly to:
-     * `name` (string) - Repository name.
-     * `slug` (string) - URL slug.
+     * `name` (string) - Repository name (used for display and routing).
      * `url` (string) - GitHub URL.
      * `portfolioContent` (string) - Raw Markdown body content.
-5. **Sorting:** Projects are sorted alphabetically by `name`.
+5. **Sorting:** Projects are sorted in descending order based on the `pushed_at` timestamp from the GitHub API (most recently pushed repository first).

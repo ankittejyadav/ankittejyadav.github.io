@@ -4,7 +4,7 @@ import { parseMarkdown } from '$lib/utils/markdown';
 
 /** @type {import('./$types').PageLoad} */
 export async function load({ params }) {
-	const project = projects.find((p) => p.slug === params.slug);
+	const project = projects.find((p) => p.name === params.slug);
 
 	if (!project) {
 		throw error(404, 'Project not found');

@@ -116,14 +116,12 @@ export function mergeProjects(repos, portfolioData) {
 		const isPortfolio = repoData?.isPortfolio ?? false;
 		const content = repoData?.content ?? null;
 
-		const slug = slugify(name);
-
 		return {
 			name,
-			slug,
 			url: repo.html_url,
 			portfolioContent: content,
-			isPortfolio
+			isPortfolio,
+			pushedAt: repo.pushed_at
 		};
 	});
 
@@ -132,11 +130,11 @@ export function mergeProjects(repos, portfolioData) {
 		return project.isPortfolio;
 	});
 
-	// Keep only the core fields
-	const finalProjects = filteredProjects.map(({ isPortfolio, ...rest }) => rest);
+	// Sort descending by pushed_at (most recently pushed first)
+	filteredProjects.sort((a, b) => new Date(b.pushedAt).getTime() - new Date(a.pushedAt).getTime());
 
-	// Sort alphabetically by name
-	finalProjects.sort((a, b) => a.name.localeCompare(b.name));
+	// Remove internal fields, keeping only name, url, and portfolioContent
+	const finalProjects = filteredProjects.map(({ isPortfolio, pushedAt, ...rest }) => rest);
 
 	return finalProjects;
 }
