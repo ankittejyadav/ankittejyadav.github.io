@@ -103,47 +103,17 @@ describe('GitHub Client', () => {
 			});
 		});
 
-		it('falls back to README on portfolio.md 404', async () => {
-			const readmeContent = '# My README fallback';
-			const base64Content = Buffer.from(readmeContent, 'utf-8').toString('base64');
-
-			vi.mocked(fetch)
-				.mockResolvedValueOnce({
-					ok: false,
-					status: 404,
-					json: async () => ({ message: 'Not Found' })
-				})
-				.mockResolvedValueOnce({
-					ok: true,
-					status: 200,
-					json: async () => ({ content: base64Content })
-				});
-
-			const res = await fetchPortfolioContent(token, owner, repo);
-
-			expect(res).toEqual({ content: readmeContent, isPortfolio: false });
-			expect(fetch).toHaveBeenCalledTimes(2);
-			expect(fetch).toHaveBeenNthCalledWith(1, `https://api.github.com/repos/${owner}/${repo}/contents/portfolio.md`, expect.any(Object));
-			expect(fetch).toHaveBeenNthCalledWith(2, `https://api.github.com/repos/${owner}/${repo}/readme`, expect.any(Object));
-		});
-
-		it('returns content null if both portfolio.md and README return 404', async () => {
-			vi.mocked(fetch)
-				.mockResolvedValueOnce({
-					ok: false,
-					status: 404,
-					json: async () => ({ message: 'Not Found' })
-				})
-				.mockResolvedValueOnce({
-					ok: false,
-					status: 404,
-					json: async () => ({ message: 'Not Found' })
-				});
+		it('returns content null and isPortfolio false on portfolio.md 404', async () => {
+			vi.mocked(fetch).mockResolvedValueOnce({
+				ok: false,
+				status: 404,
+				json: async () => ({ message: 'Not Found' })
+			});
 
 			const res = await fetchPortfolioContent(token, owner, repo);
 
 			expect(res).toEqual({ content: null, isPortfolio: false });
-			expect(fetch).toHaveBeenCalledTimes(2);
+			expect(fetch).toHaveBeenCalledTimes(1);
 		});
 
 		it('throws rate limit error for fetchPortfolioContent (403)', async () => {

@@ -114,30 +114,11 @@ export async function fetchPortfolioContent(token, owner, repo) {
 		return { content: null, isPortfolio: true };
 	}
 
-	// If 404, fallback to README. Otherwise handle general errors (401, 403, etc.)
-	if (portfolioRes.status !== 404) {
-		await handleGeneralError(portfolioRes);
-	}
-
-	// 2. Fallback to README
-	const readmeUrl = `https://api.github.com/repos/${owner}/${repo}/readme`;
-	const readmeRes = await fetch(readmeUrl, { headers });
-
-	if (readmeRes.status === 404) {
+	if (portfolioRes.status === 404) {
 		return { content: null, isPortfolio: false };
 	}
 
-	if (!readmeRes.ok) {
-		await handleGeneralError(readmeRes);
-	}
-
-	const data = await readmeRes.json();
-	if (!data.content) {
-		return { content: null, isPortfolio: false };
-	}
-
-	const decoded = Buffer.from(data.content, 'base64').toString('utf-8');
-	return { content: decoded, isPortfolio: false };
+	await handleGeneralError(portfolioRes);
 }
 
 
