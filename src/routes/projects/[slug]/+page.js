@@ -16,3 +16,12 @@ export async function load({ params }) {
 		metadata: /** @type {any} */ (projectModule).metadata
 	};
 }
+
+/** @type {import('./$types').EntryGenerator} */
+export function entries() {
+	const modules = import.meta.glob('/src/content/projects/*.md');
+	return Object.keys(modules).map((path) => {
+		const name = path.split('/').pop()?.replace('.md', '') ?? '';
+		return { slug: name };
+	});
+}

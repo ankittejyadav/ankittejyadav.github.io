@@ -1,5 +1,3 @@
-import projects from '../data/projects.json';
-
 /** @type {import('./$types').PageLoad} */
 export async function load() {
 	const postFiles = import.meta.glob('/src/content/posts/*.md', { eager: true });
@@ -19,11 +17,7 @@ export async function load() {
 	// Sort by date descending
 	posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-	// Filter to only featured: true projects
-	const featuredProjects = projects.filter((p) => p.featured === true);
-
 	return {
-		posts,
-		featuredProjects
+		posts
 	};
 }
