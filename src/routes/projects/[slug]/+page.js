@@ -1,19 +1,18 @@
 import { error } from '@sveltejs/kit';
-import projects from '../../../data/projects.json';
-import { parseMarkdown } from '$lib/utils/markdown';
 
 /** @type {import('./$types').PageLoad} */
 export async function load({ params }) {
-	const project = projects.find((p) => p.name === params.slug);
+	const modules = import.meta.glob('/src/content/projects/*.md', { eager: true });
+	const path = `/src/content/projects/${params.slug}.md`;
+	const projectModule = modules[path];
 
-	if (!project) {
+	if (!projectModule) {
 		throw error(404, 'Project not found');
 	}
 
-	const contentHtml = parseMarkdown(project.portfolioContent);
-
 	return {
-		project,
-		contentHtml
+		name: params.slug,
+		content: /** @type {any} */ (projectModule).default,
+		metadata: /** @type {any} */ (projectModule).metadata
 	};
 }

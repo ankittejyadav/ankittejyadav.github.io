@@ -10,12 +10,12 @@ The project is structured as a static portfolio website combined with an automat
 
 ```mermaid
 graph TD
-    GH[GitHub API] -->|sync-projects.mjs| JSON[src/data/projects.json]
-    JSON -->|load| ProjectsPage[src/routes/projects/+page.svelte]
-    JSON -->|load| ProjectSlug[src/routes/projects/[slug]/+page.svelte]
+    GH[GitHub API] -->|sync-projects.mjs| Files[src/content/projects/*.md]
+    Files -->|import.meta.glob| ProjectsPage[src/routes/projects/+page.svelte]
+    Files -->|import.meta.glob| ProjectSlug[src/routes/projects/[slug]/+page.svelte]
     Posts[src/content/posts/*.md] -->|import.meta.glob| BlogPage[src/routes/blog/+page.svelte]
     Posts -->|import.meta.glob| BlogSlug[src/routes/blog/[slug]/+page.svelte]
-    JSON -->|generate-profile-readme.mjs| OutputReadme[scripts/output/profile-readme.md]
+    Files -->|generate-profile-readme.mjs| OutputReadme[scripts/output/profile-readme.md]
     Posts -->|generate-profile-readme.mjs| OutputReadme
 ```
 
@@ -26,16 +26,14 @@ graph TD
 ```
 ├── .github/                  # CI/CD Workflows for automated sync and deployment
 ├── scripts/                  # Synchronization and README generation scripts
-│   ├── lib/                  # Helper utilities for GitHub fetch and config merge
-│   │   ├── github-client.mjs # Wrapper for GitHub API (paginated repos and files)
-│   │   └── merge-projects.mjs# Merges API data
+│   ├── lib/                  # Helper utilities for GitHub fetch
+│   │   └── github-client.mjs # Wrapper for GitHub API (paginated repos and files)
 │   ├── sync-projects.mjs     # The main sync entry point (requires GH_PAT env var)
 │   └── generate-profile-readme.mjs # Generates a customized GitHub profile README
 ├── src/
-│   ├── content/              # Blog posts authored in Markdown
-│   │   └── posts/            # Dynamic markdown files parsed via MDSvex
-│   ├── data/                 # Data files driving the application
-│   │   └── projects.json     # Auto-generated project list from sync pipeline
+│   ├── content/              # Markdown contents directory
+│   │   ├── posts/            # Dynamic markdown files parsed via MDSvex for the Blog
+│   │   └── projects/         # Dynamic markdown files parsed via MDSvex for Projects
 │   ├── lib/                  # Reusable utilities, types, and assets
 │   │   └── utils/            # Markdown parser using Marked
 │   └── routes/               # SvelteKit application routes (Svelte 5 Runes)
@@ -57,10 +55,18 @@ The project pulls metadata from GitHub via the `sync-projects.mjs` script:
 3. **Opt-in Filtering:** 
    - Attempts to download `portfolio.md` from the root of each repository.
    - **Important:** Repositories without a `portfolio.md` file are automatically skipped. This eliminates the need for hardcoded project lists or exclusion files.
-4. **Data Simplification:**
-   - Strips frontmatter headers so that only the raw markdown body is preserved.
-   - Restricts the cached project data inside `src/data/projects.json` strictly to:
-     * `name` (string) - Repository name (used for display and routing).
-     * `url` (string) - GitHub URL.
-     * `portfolioContent` (string) - Raw Markdown body content.
-5. **Sorting:** Projects are sorted in descending order based on the `pushed_at` timestamp from the GitHub API (most recently pushed repository first).
+4. **Data Simplification & Writing (Option B):**
+   - The sync script writes individual markdown files directly to **`src/content/projects/{name}.md`**.
+   - Frontmatter is prepended to the top of each file containing the `pushedAt` timestamp:
+     ```yaml
+     ---
+     pushedAt: "2026-06-02T22:33:16.000Z"
+     ---
+     ```
+5. **Clean-up:** Any local markdown files inside `src/content/projects/` that no longer exist as repositories containing `portfolio.md` on GitHub are deleted automatically.
+6. **Dynamic Link Generation:**
+   - The GitHub link is dynamically resolved inside the Svelte view layer using:
+     `https://github.com/ankittejyadav/{name}`
+7. **Rendering & Sorting:**
+   - **`src/routes/projects/+page.js`** imports the markdown files at compile-time using Vite `import.meta.glob` and sorts them in descending order based on the `pushedAt` frontmatter metadata.
+   - MDSvex parses each `.md` file into a Svelte component for rendering.

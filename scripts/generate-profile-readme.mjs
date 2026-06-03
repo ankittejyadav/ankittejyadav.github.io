@@ -1,14 +1,45 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { parseFrontmatter } from './lib/merge-projects.mjs';
-
 // Setup paths relative to the script's location
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const projectsJsonPath = path.resolve(__dirname, '../src/data/projects.json');
+const projectsDir = path.resolve(__dirname, '../src/content/projects');
 const postsDir = path.resolve(__dirname, '../src/content/posts');
 const outputDir = path.resolve(__dirname, 'output');
 const outputPath = path.resolve(outputDir, 'profile-readme.md');
+
+/**
+ * Parses simple YAML frontmatter block from a string content.
+ */
+function parseFrontmatter(content) {
+	if (!content || !content.trim().startsWith('---')) {
+		return { frontmatter: null, body: content };
+	}
+	const parts = content.split('\n');
+	let endIdx = -1;
+	for (let i = 1; i < parts.length; i++) {
+		if (parts[i].trim() === '---') {
+			endIdx = i;
+			break;
+		}
+	}
+	if (endIdx === -1) return { frontmatter: null, body: content };
+	const fmLines = parts.slice(1, endIdx);
+	const body = parts.slice(endIdx + 1).join('\n');
+	const frontmatter = {};
+	for (const line of fmLines) {
+		const colonIdx = line.indexOf(':');
+		if (colonIdx !== -1) {
+			const key = line.substring(0, colonIdx).trim();
+			let val = line.substring(colonIdx + 1).trim();
+			if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+				val = val.substring(1, val.length - 1);
+			}
+			frontmatter[key] = val;
+		}
+	}
+	return { frontmatter, body };
+}
 
 /**
  * Format date string (YYYY-MM-DD) to "Month Year" in UTC to prevent timezone offsets.
@@ -29,19 +60,28 @@ async function main() {
 	try {
 		console.log('Generating GitHub Profile README...');
 
-		// 1. Read src/data/projects.json
-		if (!fs.existsSync(projectsJsonPath)) {
-			console.error(`Error: Projects data file not found at ${projectsJsonPath}`);
-			process.exit(1);
+		// 1. Process Projects
+		const projects = [];
+		if (fs.existsSync(projectsDir)) {
+			const files = fs.readdirSync(projectsDir).filter((file) => file.endsWith('.md'));
+			for (const file of files) {
+				const filePath = path.join(projectsDir, file);
+				const content = fs.readFileSync(filePath, 'utf8');
+				const { frontmatter } = parseFrontmatter(content);
+				const name = file.replace('.md', '');
+				projects.push({
+					name,
+					pushedAt: frontmatter?.pushedAt || ''
+				});
+			}
 		}
-		
-		console.log(`Reading project data from ${projectsJsonPath}...`);
-		const projectsContent = fs.readFileSync(projectsJsonPath, 'utf8');
-		const projects = JSON.parse(projectsContent);
+
+		// Sort projects by pushedAt descending
+		projects.sort((a, b) => new Date(b.pushedAt).getTime() - new Date(a.pushedAt).getTime());
 
 		let projectsSection = '';
 		for (const project of projects) {
-			projectsSection += `- [${project.name}](${project.url})\n`;
+			projectsSection += `- [${project.name}](https://github.com/ankittejyadav/${project.name})\n`;
 		}
 		projectsSection = projectsSection.trimEnd();
 
@@ -88,7 +128,7 @@ Engineer building things with code.
 
 ## 📌 Projects
 
-<!-- Auto-generated from projects.json -->
+<!-- Auto-generated from projects directory -->
 
 ${projectsSection}
 

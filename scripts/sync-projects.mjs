@@ -2,15 +2,15 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { fetchAllRepos, fetchPortfolioContent } from './lib/github-client.mjs';
-import { mergeProjects, parseFrontmatter } from './lib/merge-projects.mjs';
+import { parseFrontmatter } from './lib/merge-projects.mjs';
 
 // Setup paths relative to the script's location
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const projectsJsonPath = path.resolve(__dirname, '../src/data/projects.json');
+const targetDir = path.resolve(__dirname, '../src/content/projects');
 
 async function main() {
 	try {
-		console.log('Starting portfolio synchronization...');
+		console.log('Starting portfolio synchronization to markdown files...');
 
 		// 1. Read GH_PAT from process.env.GH_PAT
 		const token = process.env.GH_PAT;
@@ -37,10 +37,15 @@ async function main() {
 		}
 		console.log(`Detected repository owner login: "${owner}"`);
 
+		// Ensure target directory exists
+		if (!fs.existsSync(targetDir)) {
+			fs.mkdirSync(targetDir, { recursive: true });
+		}
+
 		// 3. Fetch portfolio files in parallel with a concurrency limit of 5
 		console.log('Fetching portfolio files for each repository in batches of 5...');
-		const portfolioData = new Map();
 		const batchSize = 5;
+		const activeProjectFiles = new Set();
 
 		for (let i = 0; i < repos.length; i += batchSize) {
 			const batch = repos.slice(i, i + batchSize);
@@ -54,53 +59,46 @@ async function main() {
 						return { content: null, isPortfolio: false };
 					});
 
-					// Strip frontmatter if content exists so raw YAML headers don't render on the page
-					let body = portfolioRes.content;
-					if (portfolioRes.content) {
+					if (portfolioRes.isPortfolio && portfolioRes.content !== null) {
+						// Parse frontmatter so we don't duplicate it, and inject the pushedAt timestamp
 						const parsed = parseFrontmatter(portfolioRes.content);
-						body = parsed.body;
-					}
+						const fm = parsed.frontmatter || {};
+						fm.pushedAt = repo.pushed_at;
 
-					portfolioData.set(name, {
-						content: body,
-						isPortfolio: portfolioRes.isPortfolio
-					});
+						// Construct standardized markdown file content
+						let fileContent = '---\n';
+						for (const [key, value] of Object.entries(fm)) {
+							fileContent += `${key}: ${JSON.stringify(value)}\n`;
+						}
+						fileContent += '---\n';
+						fileContent += parsed.body;
+
+						const filename = `${name}.md`;
+						const filePath = path.join(targetDir, filename);
+
+						fs.writeFileSync(filePath, fileContent, 'utf8');
+						console.log(`Synced: ${filename}`);
+						activeProjectFiles.add(filename);
+					}
 				})
 			);
 		}
 
-		console.log('All metadata successfully fetched.');
+		// 4. Clean up any local markdown files that are no longer portfolios on GitHub
+		console.log('Cleaning up stale local project files...');
+		const localFiles = fs.readdirSync(targetDir).filter((file) => file.endsWith('.md'));
+		let deletedCount = 0;
 
-		// 5. Call mergeProjects(repos, portfolioData)
-		console.log('Merging project configurations...');
-		const mergedProjects = mergeProjects(repos, portfolioData);
-
-		// 6. JSON.stringify the result with 2-space indent
-		const newProjectsStr = JSON.stringify(mergedProjects, null, 2);
-
-		// 7. Read existing src/data/projects.json if it exists
-		let existingProjectsStr = null;
-		if (fs.existsSync(projectsJsonPath)) {
-			existingProjectsStr = fs.readFileSync(projectsJsonPath, 'utf8');
+		for (const file of localFiles) {
+			if (!activeProjectFiles.has(file)) {
+				const filePath = path.join(targetDir, file);
+				fs.unlinkSync(filePath);
+				console.log(`Deleted stale project file: ${file}`);
+				deletedCount++;
+			}
 		}
 
-		// 8. Compare old vs new
-		if (existingProjectsStr === newProjectsStr) {
-			console.log('No changes detected. projects.json is already up to date.');
-			process.exit(0);
-		}
-
-		// 9. If different, write new content to src/data/projects.json
-		console.log(`Writing changes to ${projectsJsonPath}...`);
-		
-		// Ensure output directory exists
-		const outputDir = path.dirname(projectsJsonPath);
-		if (!fs.existsSync(outputDir)) {
-			fs.mkdirSync(outputDir, { recursive: true });
-		}
-		
-		fs.writeFileSync(projectsJsonPath, newProjectsStr, 'utf8');
-		console.log(`Updated projects.json with ${mergedProjects.length} projects`);
+		console.log(`Portfolio sync complete. Synced ${activeProjectFiles.size} projects. Deleted ${deletedCount} stale files.`);
 		process.exit(0);
 
 	} catch (error) {
