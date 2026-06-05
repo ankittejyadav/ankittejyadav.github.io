@@ -3,9 +3,6 @@ name: Sync GitHub Projects
 on:
   repository_dispatch:
     types: [portfolio_update]
-  schedule:
-    # Weekly Sunday midnight UTC fallback
-    - cron: '0 0 * * 0'
   workflow_dispatch:
 
 permissions:
@@ -30,7 +27,7 @@ jobs:
         run: npm ci
 
       - name: Run Sync Script
-        run: node scripts/sync-projects.mjs
+        run: node scripts/sync-projects.mjs ${{ github.event.client_payload.repo }}
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
 
