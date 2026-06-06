@@ -2,43 +2,12 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { fetchAllRepos, fetchPortfolioContent } from './lib/github-client.mjs';
+import { parseFrontmatter } from './lib/frontmatter.mjs';
 // Setup paths relative to the script's location
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const targetDir = path.resolve(__dirname, '../src/content/projects');
 const OWNER = 'ankittejyadav';
 
-/**
- * Parses simple YAML frontmatter block from a string content.
- */
-function parseFrontmatter(content) {
-	if (!content || !content.trim().startsWith('---')) {
-		return { frontmatter: null, body: content };
-	}
-	const parts = content.split('\n');
-	let endIdx = -1;
-	for (let i = 1; i < parts.length; i++) {
-		if (parts[i].trim() === '---') {
-			endIdx = i;
-			break;
-		}
-	}
-	if (endIdx === -1) return { frontmatter: null, body: content };
-	const fmLines = parts.slice(1, endIdx);
-	const body = parts.slice(endIdx + 1).join('\n');
-	const frontmatter = {};
-	for (const line of fmLines) {
-		const colonIdx = line.indexOf(':');
-		if (colonIdx !== -1) {
-			const key = line.substring(0, colonIdx).trim();
-			let val = line.substring(colonIdx + 1).trim();
-			if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
-				val = val.substring(1, val.length - 1);
-			}
-			frontmatter[key] = val;
-		}
-	}
-	return { frontmatter, body };
-}
 
 /**
  * Syncs a single repository incrementally.

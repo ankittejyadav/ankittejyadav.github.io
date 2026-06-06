@@ -1,45 +1,14 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { parseFrontmatter } from './lib/frontmatter.mjs';
+
 // Setup paths relative to the script's location
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectsDir = path.resolve(__dirname, '../src/content/projects');
 const postsDir = path.resolve(__dirname, '../src/content/posts');
 const outputDir = path.resolve(__dirname, 'output');
 const outputPath = path.resolve(outputDir, 'profile-readme.md');
-
-/**
- * Parses simple YAML frontmatter block from a string content.
- */
-function parseFrontmatter(content) {
-	if (!content || !content.trim().startsWith('---')) {
-		return { frontmatter: null, body: content };
-	}
-	const parts = content.split('\n');
-	let endIdx = -1;
-	for (let i = 1; i < parts.length; i++) {
-		if (parts[i].trim() === '---') {
-			endIdx = i;
-			break;
-		}
-	}
-	if (endIdx === -1) return { frontmatter: null, body: content };
-	const fmLines = parts.slice(1, endIdx);
-	const body = parts.slice(endIdx + 1).join('\n');
-	const frontmatter = {};
-	for (const line of fmLines) {
-		const colonIdx = line.indexOf(':');
-		if (colonIdx !== -1) {
-			const key = line.substring(0, colonIdx).trim();
-			let val = line.substring(colonIdx + 1).trim();
-			if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
-				val = val.substring(1, val.length - 1);
-			}
-			frontmatter[key] = val;
-		}
-	}
-	return { frontmatter, body };
-}
 
 /**
  * Format date string (YYYY-MM-DD) to "Month Year" in UTC to prevent timezone offsets.
@@ -56,36 +25,192 @@ function formatMonthYear(dateStr) {
 	return `${month} ${year}`;
 }
 
+// Map of canonical display names for skills
+const DISPLAY_NAMES = {
+	'javascript': 'JavaScript',
+	'typescript': 'TypeScript',
+	'python': 'Python',
+	'java': 'Java',
+	'html': 'HTML',
+	'css': 'CSS',
+	'cpp': 'C++',
+	'c++': 'C++',
+	'go': 'Go',
+	'rust': 'Rust',
+	'sql': 'SQL',
+	'bash': 'Bash',
+	'svelte': 'Svelte',
+	'sveltekit': 'SvelteKit',
+	'react': 'React',
+	'flask': 'Flask',
+	'springboot': 'Spring Boot',
+	'spring boot': 'Spring Boot',
+	'vue': 'Vue',
+	'nextjs': 'Next.js',
+	'next.js': 'Next.js',
+	'express': 'Express',
+	'django': 'Django',
+	'tailwind': 'TailwindCSS',
+	'tailwindcss': 'TailwindCSS',
+	'git': 'Git',
+	'power bi': 'Power BI',
+	'powerbi': 'Power BI',
+	'tableau': 'Tableau',
+	'excel': 'Excel',
+	'postgresql': 'PostgreSQL',
+	'mysql': 'MySQL',
+	'docker': 'Docker',
+	'mongodb': 'MongoDB',
+	'redis': 'Redis',
+	'aws': 'AWS',
+	'sqlite': 'SQLite',
+	'nodejs': 'Node.js',
+	'node': 'Node.js',
+	'node.js': 'Node.js'
+};
+
+// Category mapping for skills
+const CATEGORIES = {
+	'Languages': ['javascript', 'typescript', 'python', 'java', 'html', 'css', 'cpp', 'c++', 'go', 'rust', 'sql', 'bash'],
+	'Frameworks & Libraries': ['svelte', 'sveltekit', 'react', 'flask', 'springboot', 'spring boot', 'vue', 'nextjs', 'next.js', 'express', 'django', 'tailwind', 'tailwindcss'],
+	'Tools & Databases': ['git', 'power bi', 'powerbi', 'tableau', 'excel', 'postgresql', 'mysql', 'docker', 'mongodb', 'redis', 'aws', 'sqlite', 'nodejs', 'node', 'node.js']
+};
+
 async function main() {
 	try {
 		console.log('Generating GitHub Profile README...');
 
-		// 1. Process Projects
 		const projects = [];
+		const skillCounts = {};
+
+		// 1. Process Projects
 		if (fs.existsSync(projectsDir)) {
 			const files = fs.readdirSync(projectsDir).filter((file) => file.endsWith('.md'));
 			for (const file of files) {
 				const filePath = path.join(projectsDir, file);
 				const content = fs.readFileSync(filePath, 'utf8');
-				const { frontmatter } = parseFrontmatter(content);
+				const { frontmatter, body } = parseFrontmatter(content);
 				const name = file.replace('.md', '');
+
+				const projPushedAt = frontmatter?.pushedAt || '';
+				const projHighlights = frontmatter?.highlights || [];
+				const projStack = frontmatter?.stack || [];
+				const tagline = frontmatter?.tagline || '';
+
+				// Convert stack to standard array
+				let stackArray = [];
+				if (Array.isArray(projStack)) {
+					stackArray = projStack.filter(s => typeof s === 'string' && s.trim() !== '');
+				} else if (typeof projStack === 'string' && projStack.trim() !== '') {
+					stackArray = projStack.split(',').map(s => s.trim());
+				}
+
+				// FALLBACK 1: If stack is empty in frontmatter, scan body for keywords
+				if (stackArray.length === 0 && body) {
+					const bodyLower = body.toLowerCase();
+					for (const skillKey of Object.keys(DISPLAY_NAMES)) {
+						// Match as whole word (or handle special chars like c++)
+						const escapedKey = skillKey.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+						const regex = new RegExp(`\\b${escapedKey}\\b`, 'i');
+						if (regex.test(bodyLower)) {
+							stackArray.push(DISPLAY_NAMES[skillKey]);
+						}
+					}
+				}
+
+				// Convert highlights to standard array
+				let highlightsArray = [];
+				if (Array.isArray(projHighlights)) {
+					highlightsArray = projHighlights.filter(h => typeof h === 'string' && h.trim() !== '');
+				} else if (typeof projHighlights === 'string' && projHighlights.trim() !== '') {
+					highlightsArray = [projHighlights.trim()];
+				}
+
+				// FALLBACK 2: If highlights are empty, use tagline as fallback
+				if (highlightsArray.length === 0 && tagline && tagline.trim() !== '') {
+					highlightsArray.push(tagline.trim());
+				}
+
 				projects.push({
 					name,
-					pushedAt: frontmatter?.pushedAt || ''
+					pushedAt: projPushedAt,
+					highlights: highlightsArray,
+					stack: stackArray
 				});
+
+				// Track skills from the stack
+				for (const rawSkill of stackArray) {
+					const skillClean = rawSkill.toLowerCase().trim();
+					if (skillClean) {
+						skillCounts[skillClean] = (skillCounts[skillClean] || 0) + 1;
+					}
+				}
 			}
 		}
 
-		// Sort projects by pushedAt descending
+		// Sort projects by pushedAt descending (most recent first)
 		projects.sort((a, b) => new Date(b.pushedAt).getTime() - new Date(a.pushedAt).getTime());
 
-		let projectsSection = '';
+		// 2. Build Skills Section (Categorized and sorted by frequency)
+		const categorizedSkills = {
+			'Languages': [],
+			'Frameworks & Libraries': [],
+			'Tools & Databases': [],
+			'Other Technologies': []
+		};
+
+		// Sort all unique skills by how often they are used
+		const sortedUniqueSkills = Object.keys(skillCounts).sort((a, b) => skillCounts[b] - skillCounts[a]);
+
+		for (const skill of sortedUniqueSkills) {
+			const displayName = DISPLAY_NAMES[skill] || (skill.charAt(0).toUpperCase() + skill.slice(1));
+			
+			// Find category
+			let categorized = false;
+			for (const [catName, catKeywords] of Object.entries(CATEGORIES)) {
+				if (catKeywords.includes(skill)) {
+					categorizedSkills[catName].push(displayName);
+					categorized = true;
+					break;
+				}
+			}
+			if (!categorized) {
+				categorizedSkills['Other Technologies'].push(displayName);
+			}
+		}
+
+		let skillsSection = '';
+		for (const [catName, skillList] of Object.entries(categorizedSkills)) {
+			if (skillList.length > 0) {
+				skillsSection += `* **${catName}:** ${skillList.join(', ')}\n`;
+			}
+		}
+		skillsSection = skillsSection.trimEnd();
+
+		// 3. Build Recent Highlights Section
+		// Collect recent achievements from the 5 most recently active projects that have highlights/taglines
+		let highlightsSection = '';
+		let highlightCount = 0;
 		for (const project of projects) {
+			if (project.highlights && project.highlights.length > 0) {
+				const recentHighlight = project.highlights[0]; // grab the top highlight
+				if (recentHighlight) {
+					highlightsSection += `* **${project.name}:** ${recentHighlight}\n`;
+					highlightCount++;
+				}
+			}
+			if (highlightCount >= 5) break;
+		}
+		highlightsSection = highlightsSection.trimEnd();
+
+		// 4. Build Projects List
+		let projectsSection = '';
+		for (const project of projects.slice(0, 10)) {
 			projectsSection += `- [${project.name}](https://github.com/ankittejyadav/${project.name})\n`;
 		}
 		projectsSection = projectsSection.trimEnd();
 
-		// 2. Process Blog Posts
+		// 5. Process Blog Posts
 		console.log(`Reading blog posts from ${postsDir}...`);
 		const posts = [];
 		if (fs.existsSync(postsDir)) {
@@ -117,7 +242,7 @@ async function main() {
 		}
 		writingSection = writingSection.trimEnd();
 
-		// 3. Build full README content
+		// 6. Assemble the README Content
 		const readmeMarkdown = `# Hi, I'm Ankit 👋
 
 Engineer building things with code.
@@ -126,11 +251,25 @@ Engineer building things with code.
 
 ---
 
-## 📌 Projects
+## 🛠️ Core Tech Stack & Skills
+*(Automatically aggregated from my repositories)*
+
+${skillsSection || '*Syncing skills list...*'}
+
+---
+
+## 🚀 Cool Things I'm Doing
+*(Recent key highlights from my active projects)*
+
+${highlightsSection || '*Syncing recent highlights...*'}
+
+---
+
+## 📌 Featured Projects
 
 <!-- Auto-generated from projects directory -->
 
-${projectsSection}
+${projectsSection || '*No projects listed.*'}
 
 ---
 
@@ -138,7 +277,7 @@ ${projectsSection}
 
 <!-- Auto-generated from blog posts -->
 
-${writingSection}
+${writingSection || '*No recent posts.*'}
 
 ---
 
@@ -151,7 +290,7 @@ ${writingSection}
 *This README is auto-generated by a [GitHub Action](https://github.com/ankittejyadav/ankittejyadav.github.io/actions) — powered by my portfolio sync system.*
 `;
 
-		// 4. Write generated file to scripts/output/profile-readme.md
+		// 7. Write generated file to scripts/output/profile-readme.md
 		if (!fs.existsSync(outputDir)) {
 			fs.mkdirSync(outputDir, { recursive: true });
 		}
