@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { parseFrontmatter } from './lib/frontmatter.mjs';
+import { parsePortfolioMarkdown, parseFrontmatter } from './lib/frontmatter.mjs';
 
 // Setup paths relative to the script's location
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -89,27 +89,18 @@ async function main() {
 			for (const file of files) {
 				const filePath = path.join(projectsDir, file);
 				const content = fs.readFileSync(filePath, 'utf8');
-				const { frontmatter, body } = parseFrontmatter(content);
+				const parsed = parsePortfolioMarkdown(content);
 				const name = file.replace('.md', '');
 
-				const projPushedAt = frontmatter?.pushedAt || '';
-				const projHighlights = frontmatter?.highlights || [];
-				const projStack = frontmatter?.stack || [];
-				const tagline = frontmatter?.tagline || '';
+				const projPushedAt = parsed.pushedAt || '';
+				let highlightsArray = parsed.highlights || [];
+				let stackArray = parsed.stack || [];
+				const tagline = parsed.tagline || '';
 
-				// Convert stack to standard array
-				let stackArray = [];
-				if (Array.isArray(projStack)) {
-					stackArray = projStack.filter(s => typeof s === 'string' && s.trim() !== '');
-				} else if (typeof projStack === 'string' && projStack.trim() !== '') {
-					stackArray = projStack.split(',').map(s => s.trim());
-				}
-
-				// FALLBACK 1: If stack is empty in frontmatter, scan body for keywords
-				if (stackArray.length === 0 && body) {
-					const bodyLower = body.toLowerCase();
+				// FALLBACK 1: If stack is empty in markdown headings, scan body for keywords
+				if (stackArray.length === 0 && parsed.body) {
+					const bodyLower = parsed.body.toLowerCase();
 					for (const skillKey of Object.keys(DISPLAY_NAMES)) {
-						// Match as whole word (or handle special chars like c++)
 						const escapedKey = skillKey.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 						const regex = new RegExp(`\\b${escapedKey}\\b`, 'i');
 						if (regex.test(bodyLower)) {
@@ -118,15 +109,7 @@ async function main() {
 					}
 				}
 
-				// Convert highlights to standard array
-				let highlightsArray = [];
-				if (Array.isArray(projHighlights)) {
-					highlightsArray = projHighlights.filter(h => typeof h === 'string' && h.trim() !== '');
-				} else if (typeof projHighlights === 'string' && projHighlights.trim() !== '') {
-					highlightsArray = [projHighlights.trim()];
-				}
-
-				// FALLBACK 2: If highlights are empty, use tagline as fallback
+				// FALLBACK 2: If highlights are empty, use tagline
 				if (highlightsArray.length === 0 && tagline && tagline.trim() !== '') {
 					highlightsArray.push(tagline.trim());
 				}
