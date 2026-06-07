@@ -25,55 +25,164 @@ function formatMonthYear(dateStr) {
 	return `${month} ${year}`;
 }
 
-// Map of canonical display names for skills
+// Map of canonical display names for skills (also serves as the whitelist of skills to show)
 const DISPLAY_NAMES = {
+	// Programming Languages
 	'javascript': 'JavaScript',
 	'typescript': 'TypeScript',
 	'python': 'Python',
 	'java': 'Java',
-	'html': 'HTML',
-	'css': 'CSS',
-	'cpp': 'C++',
-	'c++': 'C++',
 	'go': 'Go',
 	'rust': 'Rust',
+	'c++': 'C++',
+	'cpp': 'C++',
 	'sql': 'SQL',
 	'bash': 'Bash',
-	'svelte': 'Svelte',
-	'sveltekit': 'SvelteKit',
+	'html': 'HTML',
+	'css': 'CSS',
+
+	// Frontend & UI Engineering
 	'react': 'React',
-	'flask': 'Flask',
-	'springboot': 'Spring Boot',
-	'spring boot': 'Spring Boot',
-	'vue': 'Vue',
 	'nextjs': 'Next.js',
 	'next.js': 'Next.js',
-	'express': 'Express',
-	'django': 'Django',
+	'svelte': 'Svelte',
+	'sveltekit': 'SvelteKit',
+	'angular': 'Angular',
 	'tailwind': 'TailwindCSS',
 	'tailwindcss': 'TailwindCSS',
-	'git': 'Git',
-	'power bi': 'Power BI',
-	'powerbi': 'Power BI',
-	'tableau': 'Tableau',
-	'excel': 'Excel',
-	'postgresql': 'PostgreSQL',
-	'mysql': 'MySQL',
-	'docker': 'Docker',
-	'mongodb': 'MongoDB',
-	'redis': 'Redis',
-	'aws': 'AWS',
-	'sqlite': 'SQLite',
+	'vanilla css': 'Vanilla CSS',
+	'css custom properties': 'CSS Custom Properties',
+	'glassmorphism': 'Glassmorphism',
+	'responsive design': 'Responsive Design',
+	'ssr': 'Server-Side Rendering',
+	'server-side rendering': 'Server-Side Rendering',
+
+	// Backend & Systems Design
+	'node.js': 'Node.js',
 	'nodejs': 'Node.js',
-	'node': 'Node.js',
-	'node.js': 'Node.js'
+	'express': 'Express',
+	'springboot': 'Spring Boot',
+	'spring boot': 'Spring Boot',
+	'flask': 'Flask',
+	'django': 'Django',
+	'server actions': 'Server Actions',
+	'restful api': 'RESTful API Design',
+	'restful api design': 'RESTful API Design',
+	'modular monolith': 'Modular Monolith',
+	'domain-driven design': 'Domain-Driven Design',
+	'api-first design': 'API-First Design',
+
+	// AI, Agents & Machine Learning
+	'gemini api': 'Gemini API',
+	'openai api': 'OpenAI API',
+	'gemini vision': 'Gemini Vision',
+	'large language models': 'Large Language Models (LLMs)',
+	'llms': 'Large Language Models (LLMs)',
+	'llm': 'Large Language Models (LLMs)',
+	'llm function calling': 'LLM Function Calling / Tool Use',
+	'function calling': 'LLM Function Calling / Tool Use',
+	'tool use': 'LLM Function Calling / Tool Use',
+	'ai agent': 'AI Agent Architecture',
+	'ai agents': 'AI Agent Architecture',
+	'ai agent architecture': 'AI Agent Architecture',
+	'fallback chains': 'Multi-Model Fallback Chains',
+	'fallback chain': 'Multi-Model Fallback Chains',
+	'multi-model fallback chains': 'Multi-Model Fallback Chains',
+	'structured json': 'Structured JSON Output',
+	'structured json output': 'Structured JSON Output',
+	'prompt engineering': 'Prompt Engineering',
+	'pytorch': 'PyTorch',
+	'tensorflow': 'TensorFlow',
+	'keras': 'Keras',
+	'hugging face': 'Hugging Face',
+	'huggingface': 'Hugging Face',
+	'peft': 'PEFT',
+	'transformers': 'Transformers',
+	'multimodal ai input': 'Multimodal AI Input',
+	'gemini': 'Gemini API',
+	'openai': 'OpenAI API',
+
+	// Databases & Geospatial
+	'postgresql': 'PostgreSQL',
+	'supabase': 'Supabase',
+	'redis': 'Redis',
+	'mongodb': 'MongoDB',
+	'mysql': 'MySQL',
+	'sqlite': 'SQLite',
+	'postgis': 'PostGIS',
+	'ewkb': 'EWKB Decoding',
+	'ewkb decoding': 'EWKB Decoding',
+	'row-level security': 'Row-Level Security (RLS)',
+	'rls': 'Row-Level Security (RLS)',
+	'database migrations': 'Database Migrations',
+	'geospatial data': 'Geospatial Data',
+	'haversine': 'Haversine Formula',
+	'haversine formula': 'Haversine Formula',
+	'geofencing': 'Geofencing',
+	'reverse geocoding': 'Reverse Geocoding',
+	'coordinate systems': 'Coordinate Systems',
+
+	// Cloud & DevOps
+	'aws': 'AWS',
+	'vercel': 'Vercel',
+	'netlify': 'Netlify',
+	'docker': 'Docker',
+	'git': 'Git',
+	'supabase cli': 'Supabase CLI',
+	'github actions': 'GitHub Actions',
+	'ci/cd': 'CI/CD Pipelines',
+
+	// Developer Tools & Utilities
+	'npm': 'npm',
+	'uv': 'uv',
+	'vite': 'Vite',
+	'rollup': 'Rollup',
+	'jupyter': 'Jupyter',
+	'serde': 'Serde',
+	'toml': 'TOML',
+	'unified': 'Unified',
+	'crossterm': 'Crossterm',
+	'portable-pty': 'portable-pty',
+	'portablepty': 'portable-pty',
+	'web audio api': 'Web Audio API',
+	'text-to-speech': 'Text-to-Speech (TTS)',
+	'tts': 'Text-to-Speech (TTS)',
+	'speech-to-text': 'Speech-to-Text (STT)',
+	'stt': 'Speech-to-Text (STT)'
 };
 
 // Category mapping for skills
 const CATEGORIES = {
-	'Languages': ['javascript', 'typescript', 'python', 'java', 'html', 'css', 'cpp', 'c++', 'go', 'rust', 'sql', 'bash'],
-	'Frameworks & Libraries': ['svelte', 'sveltekit', 'react', 'flask', 'springboot', 'spring boot', 'vue', 'nextjs', 'next.js', 'express', 'django', 'tailwind', 'tailwindcss'],
-	'Tools & Databases': ['git', 'power bi', 'powerbi', 'tableau', 'excel', 'postgresql', 'mysql', 'docker', 'mongodb', 'redis', 'aws', 'sqlite', 'nodejs', 'node', 'node.js']
+	'Programming Languages': [
+		'javascript', 'typescript', 'python', 'java', 'go', 'rust', 'c++', 'cpp', 'sql', 'bash', 'html', 'css'
+	],
+	'Frontend & UI Engineering': [
+		'react', 'nextjs', 'next.js', 'svelte', 'sveltekit', 'angular', 'tailwind', 'tailwindcss', 
+		'vanilla css', 'css custom properties', 'glassmorphism', 'responsive design', 'ssr', 'server-side rendering'
+	],
+	'Backend & Systems Design': [
+		'node.js', 'nodejs', 'express', 'springboot', 'spring boot', 'flask', 'django', 
+		'server actions', 'restful api', 'restful api design', 'modular monolith', 'domain-driven design', 'api-first design'
+	],
+	'AI, Agents & Machine Learning': [
+		'gemini api', 'openai api', 'gemini vision', 'large language models', 'llms', 'llm', 
+		'llm function calling', 'function calling', 'tool use', 'ai agent', 'ai agents', 'ai agent architecture', 
+		'fallback chains', 'fallback chain', 'multi-model fallback chains', 'structured json', 'structured json output', 
+		'prompt engineering', 'pytorch', 'tensorflow', 'keras', 'hugging face', 'huggingface', 'peft', 'transformers', 
+		'multimodal ai input', 'gemini', 'openai'
+	],
+	'Databases & Geospatial': [
+		'postgresql', 'supabase', 'redis', 'mongodb', 'mysql', 'sqlite', 'postgis', 'ewkb', 'ewkb decoding', 
+		'row-level security', 'rls', 'database migrations', 'geospatial data', 'haversine', 'haversine formula', 
+		'geofencing', 'reverse geocoding', 'coordinate systems'
+	],
+	'Cloud, DevOps & Security': [
+		'aws', 'vercel', 'netlify', 'docker', 'git', 'supabase cli', 'github actions', 'ci/cd'
+	],
+	'Developer Tools & Utilities': [
+		'npm', 'uv', 'vite', 'rollup', 'jupyter', 'serde', 'toml', 'unified', 'crossterm', 
+		'portable-pty', 'portablepty', 'web audio api', 'text-to-speech', 'tts', 'speech-to-text', 'stt'
+	]
 };
 
 async function main() {
@@ -114,19 +223,29 @@ async function main() {
 					highlightsArray.push(tagline.trim());
 				}
 
+				// Whitelist stack elements to exclude parser noise
+				const validatedStack = [];
+				for (const rawSkill of stackArray) {
+					const clean = rawSkill.toLowerCase().trim();
+					if (DISPLAY_NAMES[clean]) {
+						const canonicalName = DISPLAY_NAMES[clean];
+						if (!validatedStack.includes(canonicalName)) {
+							validatedStack.push(canonicalName);
+						}
+					}
+				}
+
 				projects.push({
 					name,
 					pushedAt: projPushedAt,
 					highlights: highlightsArray,
-					stack: stackArray
+					stack: validatedStack
 				});
 
 				// Track skills from the stack
-				for (const rawSkill of stackArray) {
-					const skillClean = rawSkill.toLowerCase().trim();
-					if (skillClean) {
-						skillCounts[skillClean] = (skillCounts[skillClean] || 0) + 1;
-					}
+				for (const skill of validatedStack) {
+					const skillClean = skill.toLowerCase().trim();
+					skillCounts[skillClean] = (skillCounts[skillClean] || 0) + 1;
 				}
 			}
 		}
@@ -135,30 +254,24 @@ async function main() {
 		projects.sort((a, b) => new Date(b.pushedAt).getTime() - new Date(a.pushedAt).getTime());
 
 		// 2. Build Skills Section (Categorized and sorted by frequency)
-		const categorizedSkills = {
-			'Languages': [],
-			'Frameworks & Libraries': [],
-			'Tools & Databases': [],
-			'Other Technologies': []
-		};
+		const categorizedSkills = {};
+		for (const catName of Object.keys(CATEGORIES)) {
+			categorizedSkills[catName] = [];
+		}
 
 		// Sort all unique skills by how often they are used
 		const sortedUniqueSkills = Object.keys(skillCounts).sort((a, b) => skillCounts[b] - skillCounts[a]);
 
 		for (const skill of sortedUniqueSkills) {
-			const displayName = DISPLAY_NAMES[skill] || (skill.charAt(0).toUpperCase() + skill.slice(1));
+			const displayName = DISPLAY_NAMES[skill];
+			if (!displayName) continue;
 			
 			// Find category
-			let categorized = false;
 			for (const [catName, catKeywords] of Object.entries(CATEGORIES)) {
 				if (catKeywords.includes(skill)) {
 					categorizedSkills[catName].push(displayName);
-					categorized = true;
 					break;
 				}
-			}
-			if (!categorized) {
-				categorizedSkills['Other Technologies'].push(displayName);
 			}
 		}
 
@@ -170,30 +283,22 @@ async function main() {
 		}
 		skillsSection = skillsSection.trimEnd();
 
-		// 3. Build Recent Highlights Section
-		// Collect recent achievements from the 5 most recently active projects that have highlights/taglines
-		let highlightsSection = '';
-		let highlightCount = 0;
+		// 3. Build Featured Projects & Key Achievements Table (Top 5 active projects)
+		let projectsTable = '| Project | Core Tech | Key Accomplishment / Metric |\n| :--- | :--- | :--- |\n';
+		let activeCount = 0;
+
 		for (const project of projects) {
-			if (project.highlights && project.highlights.length > 0) {
-				const recentHighlight = project.highlights[0]; // grab the top highlight
-				if (recentHighlight) {
-					highlightsSection += `* **${project.name}:** ${recentHighlight}\n`;
-					highlightCount++;
-				}
+			const highlightText = project.highlights[0] || '';
+			if (highlightText && project.stack.length > 0) {
+				// Pick top 3 skills to avoid making table too wide
+				const shortStack = project.stack.slice(0, 4).join(', ');
+				projectsTable += `| [**${project.name}**](https://github.com/ankittejyadav/${project.name}) | ${shortStack} | ${highlightText} |\n`;
+				activeCount++;
 			}
-			if (highlightCount >= 5) break;
+			if (activeCount >= 5) break;
 		}
-		highlightsSection = highlightsSection.trimEnd();
 
-		// 4. Build Projects List
-		let projectsSection = '';
-		for (const project of projects.slice(0, 10)) {
-			projectsSection += `- [${project.name}](https://github.com/ankittejyadav/${project.name})\n`;
-		}
-		projectsSection = projectsSection.trimEnd();
-
-		// 5. Process Blog Posts
+		// 4. Process Blog Posts
 		console.log(`Reading blog posts from ${postsDir}...`);
 		const posts = [];
 		if (fs.existsSync(postsDir)) {
@@ -225,55 +330,35 @@ async function main() {
 		}
 		writingSection = writingSection.trimEnd();
 
-		// 6. Assemble the README Content
-		const readmeMarkdown = `# Hi, I'm Ankit 👋
+		// 5. Assemble the README Content
+		const readmeMarkdown = `# Ankit Yadav
 
-Engineer building things with code.
+Full-Stack Engineer building high-performance systems and developer tooling.
 
-🌐 [ankittejyadav.github.io](https://ankittejyadav.github.io)
-
----
-
-## 🛠️ Core Tech Stack & Skills
-*(Automatically aggregated from my repositories)*
-
-${skillsSection || '*Syncing skills list...*'}
+🌐 [Website & Portfolio](https://ankittejyadav.github.io) | 💼 [LinkedIn](https://linkedin.com/in/ankittejyadav)
 
 ---
 
-## 🚀 Cool Things I'm Doing
-*(Recent key highlights from my active projects)*
+## 🛠️ Technical Toolbox
 
-${highlightsSection || '*Syncing recent highlights...*'}
-
----
-
-## 📌 Featured Projects
-
-<!-- Auto-generated from projects directory -->
-
-${projectsSection || '*No projects listed.*'}
+${skillsSection || '*Loading skills toolbox...*'}
 
 ---
 
-## ✍️ Recent Writing
+## 🚀 Featured Projects & Key Achievements
+
+${projectsTable}
+
+---
+
+## ✍️ Recent Technical Writing
 
 <!-- Auto-generated from blog posts -->
 
 ${writingSection || '*No recent posts.*'}
-
----
-
-## 📊 GitHub Stats
-
-![GitHub Stats](https://github-readme-stats.vercel.app/api?username=ankittejyadav&show_icons=true&theme=default&hide_border=true)
-
----
-
-*This README is auto-generated by a [GitHub Action](https://github.com/ankittejyadav/ankittejyadav.github.io/actions) — powered by my portfolio sync system.*
 `;
 
-		// 7. Write generated file to scripts/output/profile-readme.md
+		// 6. Write generated file to scripts/output/profile-readme.md
 		if (!fs.existsSync(outputDir)) {
 			fs.mkdirSync(outputDir, { recursive: true });
 		}
