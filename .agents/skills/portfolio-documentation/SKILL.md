@@ -2,7 +2,8 @@
 name: portfolio-documentation
 description: >-
   Guides the creation of highly technical, clear, and comprehensive portfolio.md
-  files for project repositories, featuring automated tech stack auditing.
+  files for project repositories, featuring automated tech stack auditing,
+  architectural trade-off tables, and core code snippet extraction.
 ---
 
 # Portfolio Documentation Authoring Rules
@@ -41,7 +42,7 @@ Generate the `portfolio.md` file matching the following structure. Do not includ
 ```markdown
 # [Project Name]
 
-[A 2-3 sentence high-level tagline explaining what the system is, who it is for, and its primary value proposition.]
+[A 2-3 sentence high-level tagline explaining what the system is, who it is for, and its primary value proposition. This serves as the tagline.]
 
 ## Tech Stack
 * **Languages:** [Comma-separated list, e.g. Python, TypeScript, SQL]
@@ -53,14 +54,33 @@ Generate the `portfolio.md` file matching the following structure. Do not includ
 * [Action Verb] [Complexity/Integration] [Implementation details] to solve [Problem/Challenge].
 * [Action Verb] [Infrastructure/Architecture] [Optimizations] to achieve [Performance/Security improvement].
 
-## System Architecture & Data Flow
+## Core Architecture & Data Flow
 [A concise explanation of how components interact and how data flows through the system. Utilize a Mermaid diagram where helpful.]
 
+### Architectural Trade-offs
+[Present a table showing why specific technologies or patterns were selected over standard alternatives.]
+| Decision | Selected Option | Considered Alternatives | Engineering Rationale |
+|---|---|---|---|
+| [Category, e.g. State] | [Selected, e.g. Svelte Runes] | [e.g. Redux / RxJS] | [Concrete rationale, e.g. Compile-time reactivity eliminates virtual-dom overhead; keeps bundle size minimal] |
+
 ## Technical Challenges & Deep Dives
+
 ### 1. [Challenge Name, e.g. Multi-Model Fallback Cascades]
 * **Problem:** [Describe why this was difficult and the potential failure modes (e.g. API rate limits, model availability)]
 * **Solution:** [Explain the technical solution, including data structures, retry strategies, and design patterns used]
 * **Key Takeaway:** [Describe what you learned and the stability/performance result]
+
+#### Implementation Highlight (Code Snippet)
+[Embed a highly optimized 10-25 line code block of the core logic from the codebase, fully commented to show engineering prowess.]
+```javascript
+// [Provide a commented, clean code snippet showing the actual solution here]
+```
+
+## System Performance & Key Metrics
+[Provide a list of any performance guarantees, latency metrics, bundle sizes, or reliability standards achieved by the system, if applicable.]
+* **Execution/Latency:** [e.g. Hydration completed in < 150ms; first contentful paint (FCP) of < 0.3s]
+* **Resource Footprint:** [e.g. Production build bundle size < 45KB gzip]
+* **Uptime/Stability:** [e.g. Robust error recovery allowing 100% operation retention during primary API timeouts]
 ```
 
 ---
