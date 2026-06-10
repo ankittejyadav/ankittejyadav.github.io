@@ -1,5 +1,5 @@
 ---
-pushedAt: "2026-06-10T01:04:09Z"
+pushedAt: "2026-06-10T12:46:16Z"
 ---
 # Selfhost Dashboard
 
@@ -48,6 +48,7 @@ graph TD
 | **Database Layer** | Supabase (Postgres + PostGIS) | MongoDB / Prisma | PostgreSQL's native JSONB and relational foreign key constraints guarantee 3NF consistency, while PostGIS offers high-performance binary EWKB coordinate querying for geolocation tracking. |
 | **AI Integration** | Direct Gemini API | LangChain / SDK Wrappers | Direct HTTPS fetch calls with lightweight custom fallback logic prevent dependency bloat, reduce initialization overhead, and offer precise control over prompt options. |
 | **Empty States vs. Mock Data** | Explicit empty states with configuration prompts | Mock data files / static placeholder arrays | Enforces the "No Hardcoding" policy. Guarantees the dashboard is a true reflection of database state, preventing user deception at the cost of showing a sparser UI on initial setup. |
+| **Assistant Input UX** | State-Toggleable Input Layouts | Side-by-side text inputs and record buttons | Restores a clean, minimalist visual aesthetic, prevents accidental submissions, and optimizes spacing for mobile viewports. |
 
 ## Technical Challenges & Deep Dives
 
@@ -65,6 +66,11 @@ graph TD
 * **Problem:** The original dashboard intermingled database queries with extensive mock data files (`src/lib/mock/data.js`), causing false-positive hydration states and hiding bugs in weather loading, calendar pings, and nutrition goals.
 * **Solution:** Pruned all mock references, implemented conditional Svelte markup (`{#if data.weather}`), and mapped dynamic suggestion lists using context pings rather than hardcoded client-side arrays.
 * **Key Takeaway:** Eliminating mock files forces correct onboarding/integration logic and prevents interface instability when data is missing.
+
+### 4. Chat Input Voice Recorder Toggle
+* **Problem:** Integrating standard text inputs and speech-to-text recorders on a single input bar compressed the text area, causing line wrapping and layout crowding on small mobile screens.
+* **Solution:** Introduced Svelte Rune-reactive state checks (`mode = 'chat' | 'voice'`). Chat mode renders the text area and a mic button toggle. Voice mode swaps the layout to display a large mic icon widget with clear recording states and a keyboard icon to typing mode.
+* **Key Takeaway:** Toggleable layout states preserve screen widths, optimizing input experiences across variable viewports.
 
 ## System Performance & Key Metrics
 * **Execution/Latency:** Core dashboard hydration completes in `< 200ms` with fully parallelized DB pings; Svelte client-side hydration is completed in `< 150ms`.
