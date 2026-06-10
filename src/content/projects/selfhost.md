@@ -1,5 +1,5 @@
 ---
-pushedAt: "2026-06-10T12:46:16Z"
+pushedAt: "2026-06-10T13:23:37Z"
 ---
 # Selfhost Dashboard
 
@@ -16,6 +16,7 @@ An AI-first personal life-management dashboard unifying fitness, nutrition, lang
 * **Architected** an automated ATS job application tracking pipeline utilizing Gemini Vision and JSON schema enforcement to parse resume fitness scores, missing keywords, and automatically draft tailored cover letters.
 * **Designed** a high-performance geospatial pipeline decoding PostGIS EWKB binary coordinate offsets server-side and applying Haversine formulas for user geofencing.
 * **Redesigned** the core dashboard layout to eliminate mock-data fallbacks, replacing them with dynamic, crash-free "unconfigured" empty states that bind strictly to Supabase Postgres counts (`location_logs`, `workout_sessions`, `food_logs`).
+* **Formulated** a package-independent styling strategy for third-party integrations, replacing compile-sensitive Lucide brand icon imports with dynamic, styled CSS initials and standardizing utility icons on a central Material Symbols `Icon` wrapper to eliminate build-time dependency breaking changes.
 * **Formulated** a centralized home dashboard context aggregator that parallelizes 10+ Supabase queries, weather API caches, and Google Calendar fetches to hydrate the dashboard in less than 200ms.
 * **Implemented** a secure LLM function-calling database query loop constrained by strict schema allowlists and join-scoped filters, allowing natural-language assistants to safely read user databases.
 * **Developed** a language learning tutor module with real-time audio transcription, phonetics pronunciation grading, and text-to-speech feedback.
@@ -23,7 +24,6 @@ An AI-first personal life-management dashboard unifying fitness, nutrition, lang
 * **Integrated** Google Calendar and Spotify OAuth token lifecycle systems with automated 5-minute expiry buffering and credential refresh persistence to guarantee smooth continuous background sync.
 
 ## Core Architecture & Data Flow
-
 Data flows through a centralized dashboard context aggregator that parallelizes queries to hydrate the Svelte 5 reactive frontend in a single server-side load request.
 
 ```mermaid
@@ -49,6 +49,7 @@ graph TD
 | **AI Integration** | Direct Gemini API | LangChain / SDK Wrappers | Direct HTTPS fetch calls with lightweight custom fallback logic prevent dependency bloat, reduce initialization overhead, and offer precise control over prompt options. |
 | **Empty States vs. Mock Data** | Explicit empty states with configuration prompts | Mock data files / static placeholder arrays | Enforces the "No Hardcoding" policy. Guarantees the dashboard is a true reflection of database state, preventing user deception at the cost of showing a sparser UI on initial setup. |
 | **Assistant Input UX** | State-Toggleable Input Layouts | Side-by-side text inputs and record buttons | Restores a clean, minimalist visual aesthetic, prevents accidental submissions, and optimizes spacing for mobile viewports. |
+| **Integration Branding Icons** | CSS Placeholder Initials & Material Symbols Wrapper | Custom SVG Components / Pinned Lucide Version | Eliminates bundler/Rollup compile-time import breakage from upstream dependency upgrades (like Lucide 1.0.0 brand icon removals) and keeps client bundles lightweight. |
 
 ## Technical Challenges & Deep Dives
 
@@ -71,6 +72,11 @@ graph TD
 * **Problem:** Integrating standard text inputs and speech-to-text recorders on a single input bar compressed the text area, causing line wrapping and layout crowding on small mobile screens.
 * **Solution:** Introduced Svelte Rune-reactive state checks (`mode = 'chat' | 'voice'`). Chat mode renders the text area and a mic button toggle. Voice mode swaps the layout to display a large mic icon widget with clear recording states and a keyboard icon to typing mode.
 * **Key Takeaway:** Toggleable layout states preserve screen widths, optimizing input experiences across variable viewports.
+
+### 5. Upstream Dependency Fragility (Lucide Brand Icon Removals)
+* **Problem:** Upgrading `lucide-svelte` to `^1.0.1` stripped brand icons (e.g., GitHub, Google), causing production build failures on Vercel due to missing exports. These failures went unnoticed during local development because Vite compiles routes on-demand.
+* **Solution:** Refactored the integrations UI to remove all upstream brand icon dependencies. Implemented lightweight CSS-only circle avatars that dynamically generate initials from integration name strings, and standardized utility icons on a local `Icon` wrapper mapping to web-safe Material Symbols.
+* **Key Takeaway:** Decoupling UI presentation from external brand assets reduces dependency vulnerability, guarantees build-time stability, and shrinks vendor package size.
 
 ## System Performance & Key Metrics
 * **Execution/Latency:** Core dashboard hydration completes in `< 200ms` with fully parallelized DB pings; Svelte client-side hydration is completed in `< 150ms`.
