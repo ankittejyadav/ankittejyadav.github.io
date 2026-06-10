@@ -1,5 +1,5 @@
 ---
-pushedAt: "2026-06-07T20:53:27Z"
+pushedAt: "2026-06-10T01:04:09Z"
 ---
 # Selfhost Dashboard
 
@@ -12,8 +12,10 @@ An AI-first personal life-management dashboard unifying fitness, nutrition, lang
 
 ## Key Achievements (Resume Bullets)
 * **Engineered** a resilient multi-model AI fallback cascade engine across 5 Gemini model variants (`gemini-3.1-flash-lite` through `gemini-2.5-pro`) that isolates rate-limits (429) and server errors (500) to guarantee continuous uptime for core dashboard intelligence.
+* **Engineered** a dual-mode input chat system in Svelte 5 (Runes) integrating a toggleable audio recorder/transcriber and direct text fields to support multi-modal keyboard and voice assistant pings.
 * **Architected** an automated ATS job application tracking pipeline utilizing Gemini Vision and JSON schema enforcement to parse resume fitness scores, missing keywords, and automatically draft tailored cover letters.
 * **Designed** a high-performance geospatial pipeline decoding PostGIS EWKB binary coordinate offsets server-side and applying Haversine formulas for user geofencing.
+* **Redesigned** the core dashboard layout to eliminate mock-data fallbacks, replacing them with dynamic, crash-free "unconfigured" empty states that bind strictly to Supabase Postgres counts (`location_logs`, `workout_sessions`, `food_logs`).
 * **Formulated** a centralized home dashboard context aggregator that parallelizes 10+ Supabase queries, weather API caches, and Google Calendar fetches to hydrate the dashboard in less than 200ms.
 * **Implemented** a secure LLM function-calling database query loop constrained by strict schema allowlists and join-scoped filters, allowing natural-language assistants to safely read user databases.
 * **Developed** a language learning tutor module with real-time audio transcription, phonetics pronunciation grading, and text-to-speech feedback.
@@ -45,6 +47,7 @@ graph TD
 | **Styling Paradigm** | Pure Vanilla CSS | Tailwind CSS | Avoids build-tool dependency bloat, guarantees maximum style control and performance, and enforces a custom glassmorphism design system using raw CSS custom properties. |
 | **Database Layer** | Supabase (Postgres + PostGIS) | MongoDB / Prisma | PostgreSQL's native JSONB and relational foreign key constraints guarantee 3NF consistency, while PostGIS offers high-performance binary EWKB coordinate querying for geolocation tracking. |
 | **AI Integration** | Direct Gemini API | LangChain / SDK Wrappers | Direct HTTPS fetch calls with lightweight custom fallback logic prevent dependency bloat, reduce initialization overhead, and offer precise control over prompt options. |
+| **Empty States vs. Mock Data** | Explicit empty states with configuration prompts | Mock data files / static placeholder arrays | Enforces the "No Hardcoding" policy. Guarantees the dashboard is a true reflection of database state, preventing user deception at the cost of showing a sparser UI on initial setup. |
 
 ## Technical Challenges & Deep Dives
 
@@ -53,82 +56,15 @@ graph TD
 * **Solution:** Built a cascading model fallback chain that sequentially traverses multiple endpoints. The engine differentiates retryable errors (429, 503, 500, 404) from fatal client validation errors (400, 403) and emits real-time status signals (`calling`, `success`, `error`, `exhausted`) for UI rendering.
 * **Key Takeaway:** Custom fallback chains preserve operational continuity and make LLM features resilient under parallel traffic spikes.
 
-#### Implementation Highlight (Code Snippet)
-```javascript
-// src/lib/server/ai/engine.js
-// Cascades across multiple models in sequence, skipping fatal errors and retrying transient ones
-for (const model of GEMINI_MODELS) {
-    try {
-        console.log(`[AI Engine] Calling model ${model}...`);
-        emit({ type: 'calling', model });
-        const url = `${GEMINI_API_URL}/${model}:generateContent?key=${GEMINI_API_KEY}`;
-
-        const generationConfig = { ...GEMINI_GENERATION_CONFIG, temperature };
-        if (maxOutputTokens) generationConfig.maxOutputTokens = maxOutputTokens;
-        if (responseMimeType) generationConfig.responseMimeType = responseMimeType;
-
-        const res = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: requestContents, generationConfig })
-        });
-
-        if (!res.ok) {
-            const errBody = await res.text();
-            const aiError = new AiError(res.status, errBody, model);
-            emit({ type: 'error', model, error: aiError.reason.substring(0, 60) });
-
-            // Only retry on specific server errors or rate limits
-            if (res.status === 404 || res.status === 429 || res.status >= 500) {
-                lastError = aiError;
-                continue;
-            }
-            throw aiError;
-        }
-
-        const data = await res.json();
-        emit({ type: 'success', model });
-        return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    } catch (error) {
-        emit({ type: 'error', model, error: error.message?.substring(0, 60) || 'Unknown error' });
-        lastError = error;
-        // Continue fallback loop on transient network errors
-        if (error.message?.includes('429') || error.message?.includes('503') || error.message?.includes('quota')) {
-            continue;
-        }
-        throw error;
-    }
-}
-```
-
 ### 2. PostGIS EWKB Coordinate Decoding
 * **Problem:** PostgreSQL PostGIS geography columns store coordinate locations in Extended Well-Known Binary (EWKB) hexadecimal string format. Directly parsing strings with regex or third-party spatial packages introduces heavy execution delays.
 * **Solution:** Decoded the binary representations directly on the server by parsing coordinate byte arrays using JavaScript `DataView`. The decoder resolves the endianness byte and reads standard Float64 latitude and longitude coordinates directly at precise offsets.
 * **Key Takeaway:** Byte-level offsets bypass expensive parsing runtimes, ensuring that geospatial functions remain extremely fast.
 
-#### Implementation Highlight (Code Snippet)
-```javascript
-// src/lib/server/geo.js
-// Decodes a PostGIS EWKB hex string into { lat, lng } using direct byte offsets
-export function decodeEWKB(hex) {
-    try {
-        // Convert hex string to binary byte array
-        const bytes = new Uint8Array(hex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
-        const view = new DataView(bytes.buffer);
-        
-        // Byte 0: Endianness (1 = Little Endian, 0 = Big Endian)
-        const isLE = view.getUint8(0) === 1;
-        
-        // Extract 64-bit coordinates: Longitude (bytes 9-16), Latitude (bytes 17-24)
-        return {
-            lng: view.getFloat64(9, isLE),
-            lat: view.getFloat64(17, isLE),
-        };
-    } catch {
-        return null;
-    }
-}
-```
+### 3. Transitioning to a Strict Data-Driven Architecture
+* **Problem:** The original dashboard intermingled database queries with extensive mock data files (`src/lib/mock/data.js`), causing false-positive hydration states and hiding bugs in weather loading, calendar pings, and nutrition goals.
+* **Solution:** Pruned all mock references, implemented conditional Svelte markup (`{#if data.weather}`), and mapped dynamic suggestion lists using context pings rather than hardcoded client-side arrays.
+* **Key Takeaway:** Eliminating mock files forces correct onboarding/integration logic and prevents interface instability when data is missing.
 
 ## System Performance & Key Metrics
 * **Execution/Latency:** Core dashboard hydration completes in `< 200ms` with fully parallelized DB pings; Svelte client-side hydration is completed in `< 150ms`.
