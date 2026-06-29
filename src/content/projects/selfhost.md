@@ -1,5 +1,5 @@
 ---
-pushedAt: "2026-06-20T21:22:31Z"
+pushedAt: "2026-06-29T16:40:21Z"
 ---
 # Selfhost
 
@@ -130,9 +130,14 @@ graph TD
 * **Solution:** Replaced the floating hamburger icon with a sticky header bar that houses the navigation toggle. Applied `env(safe-area-inset-top)` CSS environment variables to the shell and page-level containers, dynamically adjusting top spacing based on the device's notch geometry. Bottom-sheet modals replaced top-of-page navigation to eliminate header collision entirely.
 * **Key Takeaway:** Mobile-first layouts must account for hardware-specific safe areas using CSS `env()` variables. Floating fixed-position elements should be avoided in favor of sticky containers that participate in the document flow.
 
+### 9. Complete Supabase-to-Drizzle Database Migration
+* **Problem:** The server codebase originally had an architectural split where some domain modules accessed PostgreSQL via the Supabase client (`supabase.from()`), while others used Drizzle ORM (`db`). This created inconsistencies, multiple DB libraries in the runtime, and required maintaining two query layers. Additionally, several tables (family tree, gift cards, insights, measurements, notes, runs, job applications) were not defined in Drizzle's `schema.ts`.
+* **Solution:** Conducted a comprehensive database layer convergence. Added Drizzle schema definitions for all remaining tables to `schema.ts` after introspecting the columns. Rewrote all remaining `*-db` helpers, authentication helpers (`identity.js`), and lifecycle handlers (`onboarding.js`, `job-suggestions.js`) to use Drizzle's type-safe query builders. Re-implemented the AI engine's dynamic Postgres query tool using Drizzle table mappings. Purged the legacy `supabase.js` client once all consumers were migrated. To keep unit tests green without full rewrites, integrated Drizzle's `PgDialect` query compiler inside Vitest mocks to parse Drizzle queries back to the original chainable mock expectations.
+* **Key Takeaway:** Major database layer migrations can be performed incrementally by mapping schema definitions first, refactoring query boundaries, and using automated SQL/dialect compilers to translate mock objects in the testing suite.
+
 ## System Performance & Key Metrics
-* **Test Coverage:** 179 Vitest unit tests passing across workout logic, AI exercise targets, and detailed exercise history modules.
+* **Test Coverage:** 162 Vitest unit tests passing across workout logic, AI exercise targets, jobs, language, and detailed database history modules.
 * **Compiler Safety:** svelte-check with `--fail-on-warnings` produces 0 errors and 0 warnings across the full codebase.
 * **Build Integrity:** Production bundle builds successfully via Vite with zero compilation errors.
-* **Application Scale:** 39+ registered routes, 21 architectural decision records, 4 external API integrations (Gmail, Google Calendar, Open-Meteo, Gemini AI).
+* **Application Scale:** 39+ registered routes, 22 architectural decision records, 4 external API integrations (Gmail, Google Calendar, Open-Meteo, Gemini AI).
 * **Uptime/Stability:** SSR hydration freeze on the leaderboard route resolved via client-only rendering. ResizeObserver infinite loop on the family tree component eliminated. Zero remaining navigation or rendering exceptions in production.
